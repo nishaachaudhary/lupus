@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "529370247446",
+    "firebase_url": "https://lupus-care-ffed0-default-rtdb.firebaseio.com",
+    "project_id": "lupus-care-ffed0",
+    "storage_bucket": "lupus-care-ffed0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529370247446:android:52770f39ec680a4d4e2037",
+        "android_client_info": {
+          "package_name": "com.example.lupusCare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "529370247446-ie0maidosrtncdp88cpm07jnvo57siev.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.lupusCare",
+            "certificate_hash": "08e0bdada46c98a603df721cee66bcf98a852715"
+          }
+        },
+        {
+          "client_id": "529370247446-ikp8gv420iskrktquofmnngrq9sr1ngv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqq_0ac1yxWKM9BJAqBX4HctMRBNJ3Zzc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "529370247446-ikp8gv420iskrktquofmnngrq9sr1ngv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "529370247446-8qn46i4bpp330m9h4ndd59pvgphoe5ib.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lupusCare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

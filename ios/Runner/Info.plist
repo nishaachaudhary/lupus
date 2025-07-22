@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+   <key>CFBundleDevelopmentRegion</key>
+   <string>$(DEVELOPMENT_LANGUAGE)</string>
+   <key>CFBundleDisplayName</key>
+   <string>Lupus Care</string>
+   <key>CFBundleExecutable</key>
+   <string>$(EXECUTABLE_NAME)</string>
+   <key>CFBundleIdentifier</key>
+   <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+   <key>CFBundleInfoDictionaryVersion</key>
+   <string>6.0</string>
+   <key>CFBundleName</key>
+   <string>Lupus Care</string>
+   <key>CFBundlePackageType</key>
+   <string>APPL</string>
+   <key>CFBundleShortVersionString</key>
+   <string>$(FLUTTER_BUILD_NAME)</string>
+   <key>CFBundleSignature</key>
+   <string>????</string>
+
+   <!-- Camera and Photo Library Permissions -->
+   <key>NSCameraUsageDescription</key>
+   <string>Lupus Care needs access to your camera to take and share photos in chat conversations.</string>
+   <key>NSPhotoLibraryUsageDescription</key>
+   <string>Lupus Care needs access to your photo library to share images in chat conversations.</string>
+   <key>NSPhotoLibraryAddUsageDescription</key>
+   <string>Lupus Care needs permission to save images from chat conversations to your photo library.</string>
+
+   <!-- Microphone Permission for Voice Messages -->
+   <key>NSMicrophoneUsageDescription</key>
+   <string>Lupus Care needs access to your microphone to record and send voice messages in chat.</string>
+
+   <!-- File Access Permissions -->
+   <key>NSDocumentsFolderUsageDescription</key>
+   <string>Lupus Care needs access to documents to share files in chat conversations.</string>
+   <key>NSDownloadsFolderUsageDescription</key>
+   <string>Lupus Care needs access to downloads to share files in chat conversations.</string>
+
+   <!-- Network Usage Description -->
+   <key>NSAppTransportSecurity</key>
+   <dict>
+       <key>NSAllowsArbitraryLoads</key>
+       <false/>
+       <key>NSAllowsLocalNetworking</key>
+       <true/>
+       <key>NSExceptionDomains</key>
+       <dict>
+           <!-- Firebase domains -->
+           <key>firebase.googleapis.com</key>
+           <dict>
+               <key>NSExceptionAllowsInsecureHTTPLoads</key>
+               <false/>
+               <key>NSExceptionMinimumTLSVersion</key>
+               <string>TLSv1.2</string>
+           </dict>
+           <key>firestore.googleapis.com</key>
+           <dict>
+               <key>NSExceptionAllowsInsecureHTTPLoads</key>
+               <false/>
+               <key>NSExceptionMinimumTLSVersion</key>
+               <string>TLSv1.2</string>
+           </dict>
+           <key>storage.googleapis.com</key>
+           <dict>
+               <key>NSExceptionAllowsInsecureHTTPLoads</key>
+               <false/>
+               <key>NSExceptionMinimumTLSVersion</key>
+               <string>TLSv1.2</string>
+           </dict>
+       </dict>
+   </dict>
+
+   <!-- Contacts Permission (Optional - for finding friends) -->
+   <key>NSContactsUsageDescription</key>
+   <string>Lupus Care can access your contacts to help you find friends to chat with. This is optional.</string>
+
+   <!-- Google Sign-In Configuration -->
+   <key>GIDClientID</key>
+   <string>550957763793-t86lj93b8g62b4qumcfelee43df33jee.apps.googleusercontent.com</string>
+
+   <!-- URL Schemes for Google Sign-In and Firebase -->
+   <key>CFBundleURLTypes</key>
+   <array>
+       <!-- Google Sign-In URL Scheme -->
+       <dict>
+           <key>CFBundleURLName</key>
+           <string>REVERSED_CLIENT_ID</string>
+           <key>CFBundleURLSchemes</key>
+           <array>
+               <string>com.googleusercontent.apps.550957763793-t86lj93b8g62b4qumcfelee43df33jee</string>
+           </array>
+       </dict>
+       <!-- Firebase Dynamic Links (Optional) -->
+       <dict>
+           <key>CFBundleURLName</key>
+           <string>lupuscareapp</string>
+           <key>CFBundleURLSchemes</key>
+           <array>
+               <string>lupuscareapp</string>
+           </array>
+       </dict>
+   </array>
+
+   <!-- Background Modes for Firebase -->
+   <key>UIBackgroundModes</key>
+   <array>
+       <string>background-fetch</string>
+       <string>background-processing</string>
+       <string>remote-notification</string>
+   </array>
+
+   <!-- Firebase Push Notifications -->
+   <key>FirebaseMessagingAutoInitEnabled</key>
+   <true/>
+   <key>FirebaseAnalyticsAutoInitEnabled</key>
+   <true/>
+
+   <!-- Bundle Version -->
+   <key>CFBundleVersion</key>
+   <string>$(FLUTTER_BUILD_NUMBER)</string>
+
+   <!-- Device Requirements -->
+   <key>LSRequiresIPhoneOS</key>
+   <true/>
+
+   <!-- Storyboard Configuration -->
+   <key>UILaunchStoryboardName</key>
+   <string>LaunchScreen</string>
+   <key>UIMainStoryboardFile</key>
+   <string>Main</string>
+
+   <!-- Supported Interface Orientations -->
+   <key>UISupportedInterfaceOrientations</key>
+   <array>
+      <string>UIInterfaceOrientationPortrait</string>
+   </array>
+   <key>UISupportedInterfaceOrientations~ipad</key>
+   <array>
+      <string>UIInterfaceOrientationPortrait</string>
+      <string>UIInterfaceOrientationPortraitUpsideDown</string>
+      <string>UIInterfaceOrientationLandscapeLeft</string>
+      <string>UIInterfaceOrientationLandscapeRight</string>
+   </array>
+
+   <!-- Performance Optimizations -->
+   <key>CADisableMinimumFrameDurationOnPhone</key>
+   <true/>
+   <key>UIApplicationSupportsIndirectInputEvents</key>
+   <true/>
+
+   <!-- App Capabilities -->
+   <key>UIRequiredDeviceCapabilities</key>
+   <array>
+       <string>arm64</string>
+   </array>
+
+   <!-- Status Bar Configuration -->
+   <key>UIStatusBarStyle</key>
+   <string>UIStatusBarStyleDefault</string>
+   <key>UIViewControllerBasedStatusBarAppearance</key>
+   <false/>
+
+   <!-- File Sharing Support -->
+   <key>UIFileSharingEnabled</key>
+   <true/>
+   <key>LSSupportsOpeningDocumentsInPlace</key>
+   <true/>
+
+   <!-- Supported File Types for Chat -->
+   <key>CFBundleDocumentTypes</key>
+   <array>
+       <dict>
+           <key>CFBundleTypeName</key>
+           <string>Images</string>
+           <key>LSHandlerRank</key>
+           <string>Alternate</string>
+           <key>LSItemContentTypes</key>
+           <array>
+               <string>public.image</string>
+               <string>public.jpeg</string>
+               <string>public.png</string>
+           </array>
+       </dict>
+       <dict>
+           <key>CFBundleTypeName</key>
+           <string>Documents</string>
+           <key>LSHandlerRank</key>
+           <string>Alternate</string>
+           <key>LSItemContentTypes</key>
+           <array>
+               <string>public.data</string>
+               <string>public.content</string>
+               <string>public.text</string>
+               <string>com.adobe.pdf</string>
+           </array>
+       </dict>
+   </array>
+
+   <!-- Security -->
+   <key>NSAllowsArbitraryLoadsInWebContent</key>
+   <false/>
+
+   <!-- Appearance -->
+   <key>UIUserInterfaceStyle</key>
+   <string>Light</string>
+
+</dict>
+</plist>
