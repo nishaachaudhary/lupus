@@ -1,12 +1,11 @@
-import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
+// ignore_for_file: unused_field, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, prefer_const_declarations
 
+import 'dart:async';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert'; // ADD THIS LINE
 import 'package:lupus_care/constant/dimension.dart';
 import 'package:lupus_care/constant/icons.dart';
@@ -25,7 +24,7 @@ import 'package:lupus_care/views/chat_screen/search_bar_widget.dart';
 import 'package:lupus_care/views/group_chat/group_info_screen.dart';
 
 class CommunityChatScreen extends StatefulWidget {
-  CommunityChatScreen({super.key});
+  const CommunityChatScreen({super.key});
 
   @override
   State<CommunityChatScreen> createState() => _CommunityChatScreenState();

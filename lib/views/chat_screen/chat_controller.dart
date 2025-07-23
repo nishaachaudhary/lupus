@@ -1,4 +1,6 @@
 // lib/controllers/chat_controller.dart
+// ignore_for_file: prefer_const_constructors, avoid_print, unused_local_variable, prefer_is_not_operator, unused_field, unused_element, use_rethrow_when_possible, unnecessary_cast, division_optimization
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -12,7 +14,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:lupus_care/constant/images.dart';
-import 'package:lupus_care/data/api/auth_service.dart';
 import 'package:lupus_care/helper/storage_service.dart';
 import 'package:lupus_care/views/chat_screen/firebase/firebase_chat_service.dart';
 import 'package:lupus_care/views/chat_screen/firebase/firebase_model.dart';
