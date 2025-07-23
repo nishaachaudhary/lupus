@@ -32,7 +32,6 @@ class ChatController extends GetxController {
   RxInt selectedTabIndex = 0.obs;
   Timer? _onlineStatusTimer;
 
-
 // Stream subscription for online status updates
   StreamSubscription? _onlineStatusSubscription;
   // Chat data
@@ -95,7 +94,6 @@ class ChatController extends GetxController {
   Map<String, dynamic>? _currentUserData;
   String? _consistentUserId;
 
-
   @override
   @override
   void onInit() {
@@ -136,8 +134,6 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   Future<void> initializeWithFullChatSupport() async {
     try {
       print('🚀 Initializing with full chat support...');
@@ -158,7 +154,6 @@ class ChatController extends GetxController {
       markInitialSetupComplete();
 
       print('✅ Full chat support initialization completed');
-
     } catch (e) {
       print('❌ Error initializing with full chat support: $e');
       _handleOfflineMode();
@@ -192,7 +187,8 @@ class ChatController extends GetxController {
 
       for (var chat in allChats) {
         for (var participant in chat.participants) {
-          if (participant.startsWith('app_user_') && participant != _consistentUserId) {
+          if (participant.startsWith('app_user_') &&
+              participant != _consistentUserId) {
             apiUserIds.add(participant);
           }
         }
@@ -209,8 +205,8 @@ class ChatController extends GetxController {
         // Extract API ID from consistent ID
         final apiId = consistentId.replaceFirst('app_user_', '');
 
-
-        final userRef = FirebaseFirestore.instance.collection('users').doc(consistentId);
+        final userRef =
+            FirebaseFirestore.instance.collection('users').doc(consistentId);
         batch.update(userRef, {
           'lastSeen': FieldValue.serverTimestamp(),
           'syncedAt': FieldValue.serverTimestamp(),
@@ -218,7 +214,6 @@ class ChatController extends GetxController {
       }
 
       await batch.commit();
-
     } catch (e) {
       print('❌ Error syncing API user statuses: $e');
     }
@@ -254,18 +249,19 @@ class ChatController extends GetxController {
       }
 
       if (!currentUserFound) {
-        print('⚠️ Chat $docId: Current user not in participants: $participants');
+        print(
+            '⚠️ Chat $docId: Current user not in participants: $participants');
         print('   Current user ID: $_consistentUserId');
         return false;
       }
 
       // Additional validation for personal chats
       if (data['isGroup'] != true && participants.length != 2) {
-        print('❌ Chat $docId: Personal chat should have exactly 2 participants, has: ${participants.length}');
+        print(
+            '❌ Chat $docId: Personal chat should have exactly 2 participants, has: ${participants.length}');
       }
 
       return true;
-
     } catch (e) {
       print('❌ Error validating chat data for $docId: $e');
       return false;
@@ -291,7 +287,6 @@ class ChatController extends GetxController {
       await _setupMultiFormatRealTimeListener();
 
       print('✅ Enhanced real-time listener established');
-
     } catch (e) {
       print('❌ Error setting up enhanced real-time listener: $e');
     }
@@ -320,8 +315,8 @@ class ChatController extends GetxController {
           .snapshots()
           .listen(
             (snapshot) => _handleRealTimeUpdate(snapshot, 'primary'),
-        onError: (error) => _handleListenerError(error, 'primary'),
-      );
+            onError: (error) => _handleListenerError(error, 'primary'),
+          );
 
       // CRITICAL: Set up additional listeners for other user ID formats
       for (int i = 0; i < possibleUserIds.length; i++) {
@@ -335,21 +330,22 @@ class ChatController extends GetxController {
               .snapshots()
               .listen(
                 (snapshot) => _handleRealTimeUpdate(snapshot, 'secondary-$i'),
-            onError: (error) => _handleListenerError(error, 'secondary-$i'),
-          );
+                onError: (error) => _handleListenerError(error, 'secondary-$i'),
+              );
         }
       }
 
       print('✅ Multi-format real-time listeners established');
-
     } catch (e) {
       print('❌ Error setting up multi-format listeners: $e');
     }
   }
 
-  void _handleRealTimeUpdate(QuerySnapshot snapshot, String listenerType) async {
+  void _handleRealTimeUpdate(
+      QuerySnapshot snapshot, String listenerType) async {
     try {
-      print('📨 Real-time update from $listenerType: ${snapshot.docs.length} chats');
+      print(
+          '📨 Real-time update from $listenerType: ${snapshot.docs.length} chats');
 
       final chats = <Chat>[];
       final processedChatIds = <String>{};
@@ -373,15 +369,18 @@ class ChatController extends GetxController {
             if (isGroup) {
               // Groups are always processed
               final migratedData = await _migrateChatDataIfNeeded(chatId, data);
-              final chat = _createChatFromFirestoreDataEnhanced(chatId, migratedData);
+              final chat =
+                  _createChatFromFirestoreDataEnhanced(chatId, migratedData);
               chats.add(chat);
             } else {
               // For personal chats, check if they have messages
               final hasMessages = await _chatHasMessages(chatId);
 
               if (hasMessages) {
-                final migratedData = await _migrateChatDataIfNeeded(chatId, data);
-                final chat = _createChatFromFirestoreDataEnhanced(chatId, migratedData);
+                final migratedData =
+                    await _migrateChatDataIfNeeded(chatId, data);
+                final chat =
+                    _createChatFromFirestoreDataEnhanced(chatId, migratedData);
                 chats.add(chat);
                 print('✅ Added personal chat with messages: $chatId');
               } else {
@@ -396,7 +395,6 @@ class ChatController extends GetxController {
 
       // Force update the chat lists
       _forceUpdateChatListsWithDeduplication(chats);
-
     } catch (e) {
       print('❌ Error handling real-time update: $e');
     }
@@ -404,7 +402,8 @@ class ChatController extends GetxController {
 
   Future<String?> findExistingPersonalChatWithMessages(String apiUserId) async {
     try {
-      print('🔍 Looking for existing personal chat with messages for API user: $apiUserId');
+      print(
+          '🔍 Looking for existing personal chat with messages for API user: $apiUserId');
 
       if (_consistentUserId == null) return null;
 
@@ -418,13 +417,13 @@ class ChatController extends GetxController {
           .get();
 
       for (var doc in existingChatQuery.docs) {
-        final docParticipants = List<String>.from(doc.data()['participants'] ?? []);
+        final docParticipants =
+            List<String>.from(doc.data()['participants'] ?? []);
 
         // Check if this chat contains both users
         if (docParticipants.contains(_consistentUserId!) &&
             (docParticipants.contains(otherUserConsistentId) ||
                 docParticipants.contains(apiUserId))) {
-
           // CRITICAL: Check if chat has any messages
           final messagesSnapshot = await FirebaseFirestore.instance
               .collection('chats')
@@ -466,7 +465,6 @@ class ChatController extends GetxController {
     }
   }
 
-
   Future<void> sendMessageWithApiNotifications() async {
     if (messageText.value.trim().isEmpty || currentChatId == null) return;
 
@@ -481,7 +479,6 @@ class ChatController extends GetxController {
       // final isTemporaryChat = currentChat.value?.isTemporary == true || currentChatId!.startsWith('temp_');
 
       String actualChatId = currentChatId!;
-
 
       // Create message object
       final chatMessage = ChatMessage(
@@ -511,14 +508,13 @@ class ChatController extends GetxController {
 
       // STEP 5: If this was a temporary chat, add to personal chats list
 
-
       print('✅ Message sent with API notifications successfully');
-
     } catch (e) {
       print('❌ Error sending message with API notifications: $e');
 
       // Remove message from local list if Firestore failed
-      currentMessages.removeWhere((msg) => msg.text == message &&
+      currentMessages.removeWhere((msg) =>
+          msg.text == message &&
           msg.timestamp.difference(DateTime.now()).inSeconds.abs() < 5);
       currentMessages.refresh();
 
@@ -549,7 +545,6 @@ class ChatController extends GetxController {
         // Send personal chat notification
         await _sendPersonalChatApiNotification(message, chat);
       }
-
     } catch (e) {
       print('❌ Error sending API notifications: $e');
       // Don't throw error here as the message was already sent successfully
@@ -557,7 +552,8 @@ class ChatController extends GetxController {
   }
 
   /// Send group chat API notification
-  Future<void> _sendGroupChatApiNotification(ChatMessage message, Chat chat) async {
+  Future<void> _sendGroupChatApiNotification(
+      ChatMessage message, Chat chat) async {
     try {
       print('👥 Sending group chat API notification...');
 
@@ -578,7 +574,8 @@ class ChatController extends GetxController {
       }
 
       // Extract API sender ID (remove 'app_user_' prefix if present)
-      final apiSenderId = NotificationApiService.extractApiUserId(_consistentUserId!);
+      final apiSenderId =
+          NotificationApiService.extractApiUserId(_consistentUserId!);
 
       print('   API Sender ID: $apiSenderId');
       print('   API Group ID: $apiGroupId');
@@ -596,15 +593,14 @@ class ChatController extends GetxController {
       } else {
         print('❌ Group chat API notification failed: ${result['message']}');
       }
-
     } catch (e) {
       print('❌ Error sending group chat API notification: $e');
     }
   }
 
-
   /// Send personal chat API notification
-  Future<void> _sendPersonalChatApiNotification(ChatMessage message, Chat chat) async {
+  Future<void> _sendPersonalChatApiNotification(
+      ChatMessage message, Chat chat) async {
     try {
       print('💬 Sending personal chat API notification...');
 
@@ -623,8 +619,10 @@ class ChatController extends GetxController {
       }
 
       // Extract API user IDs
-      final apiSenderId = NotificationApiService.extractApiUserId(_consistentUserId!);
-      final apiReceiverId = NotificationApiService.extractApiUserId(otherParticipantId);
+      final apiSenderId =
+          NotificationApiService.extractApiUserId(_consistentUserId!);
+      final apiReceiverId =
+          NotificationApiService.extractApiUserId(otherParticipantId);
 
       print('   API Sender ID: $apiSenderId');
       print('   API Receiver ID: $apiReceiverId');
@@ -642,7 +640,6 @@ class ChatController extends GetxController {
       } else {
         print('❌ Personal chat API notification failed: ${result['message']}');
       }
-
     } catch (e) {
       print('❌ Error sending personal chat API notification: $e');
     }
@@ -686,7 +683,8 @@ class ChatController extends GetxController {
 
       final Uint8List imageBytes = await imageFile.readAsBytes();
       if (imageBytes.length > 800000) {
-        throw Exception('Image too large (${(imageBytes.length / 1024).toInt()}KB). Please choose a smaller image.');
+        throw Exception(
+            'Image too large (${(imageBytes.length / 1024).toInt()}KB). Please choose a smaller image.');
       }
 
       final String base64Image = base64Encode(imageBytes);
@@ -729,7 +727,6 @@ class ChatController extends GetxController {
         colorText: Colors.white,
         duration: Duration(seconds: 2),
       );
-
     } catch (e) {
       print('❌ Error processing image with API notifications: $e');
 
@@ -766,7 +763,8 @@ class ChatController extends GetxController {
       if (chat.isGroup) {
         print('🧪 Testing group notification...');
 
-        final apiSenderId = NotificationApiService.extractApiUserId(_consistentUserId!);
+        final apiSenderId =
+            NotificationApiService.extractApiUserId(_consistentUserId!);
         final apiGroupId = chat.apiGroupId ?? chat.id;
 
         final result = await NotificationApiService.sendGroupChatNotification(
@@ -779,7 +777,8 @@ class ChatController extends GetxController {
           Get.snackbar('Test Success', 'Group notification API test passed!',
               backgroundColor: Colors.green, colorText: Colors.white);
         } else {
-          Get.snackbar('Test Failed', 'Group notification API test failed: ${result['message']}',
+          Get.snackbar('Test Failed',
+              'Group notification API test failed: ${result['message']}',
               backgroundColor: Colors.red, colorText: Colors.white);
         }
       } else {
@@ -800,8 +799,10 @@ class ChatController extends GetxController {
           return;
         }
 
-        final apiSenderId = NotificationApiService.extractApiUserId(_consistentUserId!);
-        final apiReceiverId = NotificationApiService.extractApiUserId(otherParticipantId);
+        final apiSenderId =
+            NotificationApiService.extractApiUserId(_consistentUserId!);
+        final apiReceiverId =
+            NotificationApiService.extractApiUserId(otherParticipantId);
 
         final result = await NotificationApiService.sendChatNotification(
           senderId: apiSenderId,
@@ -813,11 +814,11 @@ class ChatController extends GetxController {
           Get.snackbar('Test Success', 'Personal notification API test passed!',
               backgroundColor: Colors.green, colorText: Colors.white);
         } else {
-          Get.snackbar('Test Failed', 'Personal notification API test failed: ${result['message']}',
+          Get.snackbar('Test Failed',
+              'Personal notification API test failed: ${result['message']}',
               backgroundColor: Colors.red, colorText: Colors.white);
         }
       }
-
     } catch (e) {
       print('❌ Error testing API notifications: $e');
       Get.snackbar('Test Error', 'API notification test error: $e',
@@ -825,16 +826,13 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   /// REPLACE your existing sendImage method with this enhanced version
   Future<void> sendImage() async {
     await sendImageWithApiNotifications();
   }
 
-
-
-  Future<Map<String, dynamic>> _migrateChatDataIfNeeded(String chatId, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> _migrateChatDataIfNeeded(
+      String chatId, Map<String, dynamic> data) async {
     try {
       final participants = List<String>.from(data['participants'] ?? []);
       final userEmail = _currentUserData?['email']?.toString() ?? '';
@@ -849,7 +847,8 @@ class ChatController extends GetxController {
           // Replace with consistent user ID
           updatedParticipants.add(_consistentUserId!);
           needsMigration = true;
-          print('🔄 Migrating participant: $participantId -> $_consistentUserId');
+          print(
+              '🔄 Migrating participant: $participantId -> $_consistentUserId');
         } else {
           updatedParticipants.add(participantId);
         }
@@ -857,12 +856,15 @@ class ChatController extends GetxController {
 
       if (needsMigration) {
         // Update participant details and unread counts
-        final participantDetails = Map<String, dynamic>.from(data['participantDetails'] ?? {});
-        final unreadCounts = Map<String, dynamic>.from(data['unreadCounts'] ?? {});
+        final participantDetails =
+            Map<String, dynamic>.from(data['participantDetails'] ?? {});
+        final unreadCounts =
+            Map<String, dynamic>.from(data['unreadCounts'] ?? {});
 
         // Migrate participant details
         if (participantDetails.containsKey(userEmail)) {
-          participantDetails[_consistentUserId!] = participantDetails[userEmail];
+          participantDetails[_consistentUserId!] =
+              participantDetails[userEmail];
           participantDetails.remove(userEmail);
         }
         if (participantDetails.containsKey(userId)) {
@@ -881,7 +883,10 @@ class ChatController extends GetxController {
         }
 
         // Update Firestore document
-        await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
+        await FirebaseFirestore.instance
+            .collection('chats')
+            .doc(chatId)
+            .update({
           'participants': updatedParticipants,
           'participantDetails': participantDetails,
           'unreadCounts': unreadCounts,
@@ -938,23 +943,28 @@ class ChatController extends GetxController {
         } else {
           if (!existingPersonalIds.contains(chat.id)) {
             allPersonalChats.add(chat);
-            print('➕ Added new personal chat: ${chat.getDisplayName(_consistentUserId)}');
+            print(
+                '➕ Added new personal chat: ${chat.getDisplayName(_consistentUserId)}');
           } else {
             // Update existing personal chat
             final index = allPersonalChats.indexWhere((c) => c.id == chat.id);
             if (index >= 0) {
               allPersonalChats[index] = chat;
-              print('🔄 Updated personal chat: ${chat.getDisplayName(_consistentUserId)}');
+              print(
+                  '🔄 Updated personal chat: ${chat.getDisplayName(_consistentUserId)}');
             }
           }
         }
       }
 
       // Sort by last message timestamp (newest first)
-      allPersonalChats.sort((a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
-      allGroupChats.sort((a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
+      allPersonalChats.sort(
+          (a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
+      allGroupChats.sort(
+          (a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
 
-      print('📊 Final counts: Personal: ${allPersonalChats.length}, Groups: ${allGroupChats.length}');
+      print(
+          '📊 Final counts: Personal: ${allPersonalChats.length}, Groups: ${allGroupChats.length}');
 
       // CRITICAL: Update observable lists immediately
       personalChats.value = allPersonalChats;
@@ -968,7 +978,6 @@ class ChatController extends GetxController {
       _applySearchFilter();
 
       print('✅ Chat lists updated with deduplication');
-
     } catch (e) {
       print('❌ Error in force update with deduplication: $e');
     }
@@ -978,12 +987,6 @@ class ChatController extends GetxController {
   void _handleNewChatsDetected(List<String> newChatIds) {
     try {
       print('🔔 Handling ${newChatIds.length} newly detected chats');
-
-
-
-
-
-
     } catch (e) {
       print('❌ Error handling new chats: $e');
     }
@@ -1005,14 +1008,16 @@ class ChatController extends GetxController {
   }
 
 // 8. ENHANCED: Create personal chat with proper notification system
-  Future<String?> createPersonalChatEnhanced(String apiUserId, String userName) async {
+  Future<String?> createPersonalChatEnhanced(
+      String apiUserId, String userName) async {
     if (_consistentUserId == null) {
       _showError('User not authenticated');
       return null;
     }
 
     try {
-      print('💬 Creating ENHANCED personal chat with: $userName (API ID: $apiUserId)');
+      print(
+          '💬 Creating ENHANCED personal chat with: $userName (API ID: $apiUserId)');
 
       // Set loading states
       isLoading.value = true;
@@ -1024,7 +1029,8 @@ class ChatController extends GetxController {
       print('👤 Other user consistent ID: $otherUserConsistentId');
 
       // Check if chat already exists with comprehensive search
-      String? existingChatId = await _findExistingChatComprehensive(otherUserConsistentId, apiUserId);
+      String? existingChatId = await _findExistingChatComprehensive(
+          otherUserConsistentId, apiUserId);
 
       if (existingChatId != null) {
         print('✅ Found existing chat: $existingChatId');
@@ -1035,7 +1041,8 @@ class ChatController extends GetxController {
       print('🆕 Creating new chat with $userName');
 
       // CRITICAL: Ensure both users have proper Firebase user documents
-      await _ensureApiUserDocumentExists(apiUserId, otherUserConsistentId, userName);
+      await _ensureApiUserDocumentExists(
+          apiUserId, otherUserConsistentId, userName);
       await _ensureUserDocumentExists();
 
       // Create new chat with CONSISTENT participant IDs
@@ -1073,16 +1080,17 @@ class ChatController extends GetxController {
         }
       };
 
-      print('📝 Creating chat document with participants: ${chatData['participants']}');
+      print(
+          '📝 Creating chat document with participants: ${chatData['participants']}');
 
-      final docRef = await FirebaseFirestore.instance
-          .collection('chats')
-          .add(chatData);
+      final docRef =
+          await FirebaseFirestore.instance.collection('chats').add(chatData);
 
       print('✅ Personal chat created successfully: ${docRef.id}');
 
       // CRITICAL: Send notification to other user about new chat
-      await _notifyUserAboutNewPersonalChat(docRef.id, otherUserConsistentId, userName);
+      await _notifyUserAboutNewPersonalChat(
+          docRef.id, otherUserConsistentId, userName);
 
       // CRITICAL: Add to local list immediately
       await _addNewChatToLocalListImmediate(docRef.id, chatData);
@@ -1097,7 +1105,6 @@ class ChatController extends GetxController {
       }
 
       return docRef.id;
-
     } catch (e) {
       print('❌ Error creating enhanced personal chat: $e');
       if (!_silentMode) {
@@ -1112,7 +1119,8 @@ class ChatController extends GetxController {
   }
 
 // 9. NEW: Comprehensive existing chat search
-  Future<String?> _findExistingChatComprehensive(String consistentId, String apiId) async {
+  Future<String?> _findExistingChatComprehensive(
+      String consistentId, String apiId) async {
     try {
       print('🔍 Comprehensive search for existing chat...');
 
@@ -1124,10 +1132,12 @@ class ChatController extends GetxController {
           .get();
 
       for (var doc in existingChats.docs) {
-        final participants = List<String>.from(doc.data()['participants'] ?? []);
+        final participants =
+            List<String>.from(doc.data()['participants'] ?? []);
 
         if (participants.contains(_consistentUserId!) &&
-            (participants.contains(consistentId) || participants.contains(apiId))) {
+            (participants.contains(consistentId) ||
+                participants.contains(apiId))) {
           print('✅ Found existing chat: ${doc.id}');
           return doc.id;
         }
@@ -1142,14 +1152,13 @@ class ChatController extends GetxController {
   }
 
 // 10. NEW: Notify user about new personal chat
-  Future<void> _notifyUserAboutNewPersonalChat(String chatId, String otherUserId, String otherUserName) async {
+  Future<void> _notifyUserAboutNewPersonalChat(
+      String chatId, String otherUserId, String otherUserName) async {
     try {
       print('🔔 Notifying user about new personal chat: $chatId');
 
       // Create notification document
-      await FirebaseFirestore.instance
-          .collection('notifications')
-          .add({
+      await FirebaseFirestore.instance.collection('notifications').add({
         'type': 'new_personal_chat',
         'chatId': chatId,
         'userId': otherUserId,
@@ -1162,7 +1171,6 @@ class ChatController extends GetxController {
       });
 
       print('✅ Notification sent to user: $otherUserId');
-
     } catch (e) {
       print('❌ Error sending new chat notification: $e');
     }
@@ -1176,7 +1184,8 @@ class ChatController extends GetxController {
         return;
       }
 
-      print('👂 Setting up enhanced notification listener for: $_consistentUserId');
+      print(
+          '👂 Setting up enhanced notification listener for: $_consistentUserId');
 
       // Listen for notifications directed to this user
       FirebaseFirestore.instance
@@ -1185,7 +1194,6 @@ class ChatController extends GetxController {
           .where('processed', isEqualTo: false)
           .snapshots()
           .listen((snapshot) {
-
         print('🔔 Received ${snapshot.docs.length} unprocessed notifications');
 
         for (var doc in snapshot.docs) {
@@ -1208,8 +1216,10 @@ class ChatController extends GetxController {
             }
 
             // Mark notification as processed
-            doc.reference.update({'processed': true, 'processedAt': FieldValue.serverTimestamp()});
-
+            doc.reference.update({
+              'processed': true,
+              'processedAt': FieldValue.serverTimestamp()
+            });
           } catch (e) {
             print('❌ Error processing notification ${doc.id}: $e');
           }
@@ -1219,14 +1229,14 @@ class ChatController extends GetxController {
       });
 
       print('✅ Enhanced notification listener established');
-
     } catch (e) {
       print('❌ Error setting up notification listener: $e');
     }
   }
 
 // 12. NEW: Handle new personal chat notification
-  Future<void> _handleNewPersonalChatNotification(String notificationId, Map<String, dynamic> data) async {
+  Future<void> _handleNewPersonalChatNotification(
+      String notificationId, Map<String, dynamic> data) async {
     try {
       print('📨 Handling new personal chat notification');
 
@@ -1236,8 +1246,6 @@ class ChatController extends GetxController {
       if (chatId != null) {
         // Force refresh to ensure the new chat appears
         await forceRefreshChats();
-
-
       }
 
       print('✅ New personal chat notification handled');
@@ -1247,7 +1255,8 @@ class ChatController extends GetxController {
   }
 
 // 13. NEW: Handle new group notification
-  Future<void> _handleNewGroupNotification(String notificationId, Map<String, dynamic> data) async {
+  Future<void> _handleNewGroupNotification(
+      String notificationId, Map<String, dynamic> data) async {
     try {
       print('📨 Handling new group notification');
 
@@ -1256,8 +1265,6 @@ class ChatController extends GetxController {
 
       if (groupId != null) {
         await forceRefreshChats();
-
-
       }
 
       print('✅ New group notification handled');
@@ -1267,7 +1274,8 @@ class ChatController extends GetxController {
   }
 
 // 14. NEW: Handle new message notification
-  Future<void> _handleNewMessageNotification(String notificationId, Map<String, dynamic> data) async {
+  Future<void> _handleNewMessageNotification(
+      String notificationId, Map<String, dynamic> data) async {
     try {
       print('📨 Handling new message notification');
 
@@ -1283,7 +1291,8 @@ class ChatController extends GetxController {
 // 15. REPLACE your existing initializeWithEnhancedRealTime method:
   Future<void> initializeWithEnhancedRealTime() async {
     try {
-      print('🚀 Initializing ChatController with ENHANCED real-time support...');
+      print(
+          '🚀 Initializing ChatController with ENHANCED real-time support...');
 
       // Step 1: Basic initialization
       await _safeInitializeFirebase();
@@ -1307,13 +1316,11 @@ class ChatController extends GetxController {
       markInitialSetupComplete();
 
       print('✅ ENHANCED real-time ChatController initialization completed');
-
     } catch (e) {
       print('❌ Error initializing ChatController with enhanced real-time: $e');
       _handleOfflineMode();
     }
   }
-
 
   Future<void> sendMessageEnhanced(String messageText) async {
     if (messageText.trim().isEmpty || currentChatId == null) return;
@@ -1344,12 +1351,12 @@ class ChatController extends GetxController {
       await _sendMessageToFirestore(message);
 
       print('✅ Enhanced message sent successfully');
-
     } catch (e) {
       print('❌ Error sending enhanced message: $e');
 
       // Remove message from local list if Firestore failed
-      currentMessages.removeWhere((msg) => msg.text == messageText.trim() &&
+      currentMessages.removeWhere((msg) =>
+          msg.text == messageText.trim() &&
           msg.timestamp.difference(DateTime.now()).inSeconds.abs() < 5);
       currentMessages.refresh();
 
@@ -1361,7 +1368,8 @@ class ChatController extends GetxController {
   }
 
 // CRITICAL: Update local chat immediately for instant UI response
-  Future<void> _updateLocalChatImmediately(String chatId, String lastMessage) async {
+  Future<void> _updateLocalChatImmediately(
+      String chatId, String lastMessage) async {
     try {
       print('⚡ Updating local chat immediately for instant UI response');
 
@@ -1452,7 +1460,6 @@ class ChatController extends GetxController {
       refreshChatListUI();
 
       print('⚡ Local chat updated immediately for instant response');
-
     } catch (e) {
       print('❌ Error updating local chat immediately: $e');
     }
@@ -1474,7 +1481,8 @@ class ChatController extends GetxController {
           .get();
 
       for (var doc in existingChatQuery.docs) {
-        final docParticipants = List<String>.from(doc.data()['participants'] ?? []);
+        final docParticipants =
+            List<String>.from(doc.data()['participants'] ?? []);
 
         // Check if this chat contains both users
         if (docParticipants.contains(_consistentUserId!) &&
@@ -1509,7 +1517,6 @@ class ChatController extends GetxController {
 
       final data = chatDoc.data()!;
       return _createChatFromFirestoreDataEnhanced(chatId, data);
-
     } catch (e) {
       print('❌ Error creating chat from existing Firebase: $e');
       throw e;
@@ -1533,10 +1540,7 @@ class ChatController extends GetxController {
       print('📝 Sending message with enhanced chat creation logic...');
       isSendingMessage.value = true;
 
-
       String actualChatId = currentChatId!;
-
-
 
       final message = ChatMessage(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -1553,21 +1557,17 @@ class ChatController extends GetxController {
       currentMessages.add(message);
       currentMessages.refresh();
 
-
       await _updateLocalChatImmediately(actualChatId, messageText.trim());
-
 
       await _sendMessageToFirestore(message);
 
-
-
       print('✅ Message sent and chat created (if needed)');
-
     } catch (e) {
       print('❌ Error sending message with chat creation: $e');
 
       // Remove message from local list if Firestore failed
-      currentMessages.removeWhere((msg) => msg.text == messageText.trim() &&
+      currentMessages.removeWhere((msg) =>
+          msg.text == messageText.trim() &&
           msg.timestamp.difference(DateTime.now()).inSeconds.abs() < 5);
       currentMessages.refresh();
 
@@ -1578,7 +1578,8 @@ class ChatController extends GetxController {
     }
   }
 
-  Future<void> _addNewChatToPersonalChatsListAfterFirstMessage(String chatId) async {
+  Future<void> _addNewChatToPersonalChatsListAfterFirstMessage(
+      String chatId) async {
     try {
       print('➕ Adding chat to personal list after first message: $chatId');
 
@@ -1604,7 +1605,6 @@ class ChatController extends GetxController {
 
         print('✅ Chat added to personal chats list after first message');
       }
-
     } catch (e) {
       print('❌ Error adding chat after first message: $e');
     }
@@ -1633,7 +1633,8 @@ class ChatController extends GetxController {
       }
 
       // Get participant details
-      final otherParticipant = currentChat.value!.participantDetails[otherParticipantId];
+      final otherParticipant =
+          currentChat.value!.participantDetails[otherParticipantId];
       if (otherParticipant == null) {
         throw Exception('Could not find other participant details');
       }
@@ -1667,23 +1668,23 @@ class ChatController extends GetxController {
           otherParticipantId: 0,
         },
         'chatType': 'personal',
-        'createdOnFirstMessage': true, // Flag to indicate this was created on first message
+        'createdOnFirstMessage':
+            true, // Flag to indicate this was created on first message
       };
 
       print('📝 Creating Firebase chat document...');
 
-      final docRef = await FirebaseFirestore.instance
-          .collection('chats')
-          .add(chatData);
+      final docRef =
+          await FirebaseFirestore.instance.collection('chats').add(chatData);
 
       print('✅ Firebase chat created: ${docRef.id}');
 
       // Create user document for API user if needed
       final apiUserId = otherParticipantId.replaceFirst('app_user_', '');
-      await _ensureApiUserDocumentExists(apiUserId, otherParticipantId, otherParticipant.name);
+      await _ensureApiUserDocumentExists(
+          apiUserId, otherParticipantId, otherParticipant.name);
 
       return docRef.id;
-
     } catch (e) {
       print('❌ Error creating Firebase chat for first message: $e');
       throw e;
@@ -1717,7 +1718,6 @@ class ChatController extends GetxController {
 
         print('✅ New chat added to personal chats list');
       }
-
     } catch (e) {
       print('❌ Error adding new chat to personal chats list: $e');
     }
@@ -1743,7 +1743,6 @@ class ChatController extends GetxController {
       _setupEnhancedOnlineStatusUpdates();
 
       print('✅ Enhanced real-time chat loading completed');
-
     } catch (e) {
       print('❌ Error in enhanced real-time chat loading: $e');
       _processChatData([]);
@@ -1769,7 +1768,6 @@ class ChatController extends GetxController {
           .where('processed', isEqualTo: false)
           .snapshots()
           .listen((snapshot) {
-
         print('🔔 Received ${snapshot.docs.length} unprocessed notifications');
 
         for (var doc in snapshot.docs) {
@@ -1790,7 +1788,6 @@ class ChatController extends GetxController {
                 // _handleNewMessageNotification(doc.id, data);
                 break;
             }
-
           } catch (e) {
             print('❌ Error processing notification ${doc.id}: $e');
           }
@@ -1800,7 +1797,6 @@ class ChatController extends GetxController {
       });
 
       print('✅ Chat notification listener established');
-
     } catch (e) {
       print('❌ Error setting up notification listener: $e');
     }
@@ -1811,7 +1807,8 @@ class ChatController extends GetxController {
       if (Get.isRegistered<NotificationService>()) {
         print('✅ NotificationService already registered');
       } else {
-        await Get.putAsync(() => NotificationService().onInit().then((_) => NotificationService()));
+        await Get.putAsync(() =>
+            NotificationService().onInit().then((_) => NotificationService()));
         print('✅ NotificationService initialized');
       }
     } catch (e) {
@@ -1829,16 +1826,13 @@ class ChatController extends GetxController {
       // Set up periodic updates every 30 seconds
       _onlineStatusTimer = Timer.periodic(Duration(seconds: 30), (timer) {
         _updateOwnOnlineStatus(true);
-
       });
-
 
       print('✅ Online status updates started');
     } catch (e) {
       print('❌ Error starting online status updates: $e');
     }
   }
-
 
   Future<void> _updateOwnOnlineStatus(bool isOnline) async {
     try {
@@ -1865,11 +1859,14 @@ class ChatController extends GetxController {
     }
   }
 
-  Future<void> onGroupImageUpdatedFromGroupController(String chatId, String newImageData) async {
+  Future<void> onGroupImageUpdatedFromGroupController(
+      String chatId, String newImageData) async {
     try {
-      print('🔄 ChatController: Group image update notification from GroupController');
+      print(
+          '🔄 ChatController: Group image update notification from GroupController');
       print('   Chat ID: $chatId');
-      print('   New image data type: ${newImageData.startsWith('data:image') ? 'Base64' : 'URL'}');
+      print(
+          '   New image data type: ${newImageData.startsWith('data:image') ? 'Base64' : 'URL'}');
       print('   Image data length: ${newImageData.length}');
 
       // Update local chat data immediately using comprehensive method
@@ -1878,17 +1875,19 @@ class ChatController extends GetxController {
       // Force refresh chat lists UI
       refreshChatListUI();
 
-      print('✅ ChatController: Group image sync from GroupController completed');
-
+      print(
+          '✅ ChatController: Group image sync from GroupController completed');
     } catch (e) {
-      print('❌ ChatController: Error syncing group image from GroupController: $e');
+      print(
+          '❌ ChatController: Error syncing group image from GroupController: $e');
     }
   }
 
-
-  Future<void> updateGroupImageFromController(String groupId, String newImageData) async {
+  Future<void> updateGroupImageFromController(
+      String groupId, String newImageData) async {
     try {
-      print('📞 ChatController: Received group image update from GroupController');
+      print(
+          '📞 ChatController: Received group image update from GroupController');
       print('   Group ID: $groupId');
       print('   Image type: ${_getImageType(newImageData)}');
 
@@ -1898,15 +1897,17 @@ class ChatController extends GetxController {
       // Verify the update was successful
       await _verifyGroupImageUpdate(groupId, newImageData);
 
-      print('✅ ChatController: Group image update from GroupController completed');
-
+      print(
+          '✅ ChatController: Group image update from GroupController completed');
     } catch (e) {
-      print('❌ ChatController: Error updating group image from GroupController: $e');
+      print(
+          '❌ ChatController: Error updating group image from GroupController: $e');
     }
   }
 
 // Helper method to verify group image update
-  Future<void> _verifyGroupImageUpdate(String groupId, String expectedImageData) async {
+  Future<void> _verifyGroupImageUpdate(
+      String groupId, String expectedImageData) async {
     try {
       print('🔍 Verifying group image update...');
 
@@ -1915,9 +1916,9 @@ class ChatController extends GetxController {
       bool found = false;
 
       for (var chat in allChats) {
-        if (chat.id == groupId || chat.apiGroupId == groupId ||
+        if (chat.id == groupId ||
+            chat.apiGroupId == groupId ||
             (chat.isGroup && chat.name.isNotEmpty)) {
-
           final currentImage = chat.groupImage ?? '';
           if (currentImage == expectedImageData) {
             found = true;
@@ -1925,7 +1926,6 @@ class ChatController extends GetxController {
             break;
           } else {
             print('⚠️ Group image mismatch detected');
-
           }
         }
       }
@@ -1934,7 +1934,6 @@ class ChatController extends GetxController {
         print('❌ Group image update verification failed - forcing refresh');
         await forceRefreshChatsWithGroupImages();
       }
-
     } catch (e) {
       print('❌ Error verifying group image update: $e');
     }
@@ -1952,11 +1951,11 @@ class ChatController extends GetxController {
 
     for (var chat in groupChatsOnly) {
       print('👥 Group: ${chat.name} (${chat.id})');
-      print('   - Has group image: ${chat.groupImage != null && chat.groupImage!.isNotEmpty}');
+      print(
+          '   - Has group image: ${chat.groupImage != null && chat.groupImage!.isNotEmpty}');
       if (chat.groupImage != null && chat.groupImage!.isNotEmpty) {
         print('   - Image type: ${_getImageType(chat.groupImage)}');
         print('   - Image length: ${chat.groupImage!.length}');
-
       }
       print('   - API Group ID: ${chat.apiGroupId}');
       print('   - Participants: ${chat.participants.length}');
@@ -1984,7 +1983,8 @@ class ChatController extends GetxController {
 
       // Generate consistent user ID
       _consistentUserId = _generateConsistentUserId(_currentUserData!);
-      print('👤 Current user: ${_currentUserData!['email']} (ID: $_consistentUserId)');
+      print(
+          '👤 Current user: ${_currentUserData!['email']} (ID: $_consistentUserId)');
 
       // Verify Firebase is initialized
       try {
@@ -1999,7 +1999,6 @@ class ChatController extends GetxController {
       await _initializeFirebaseServices();
       _isInitialized = true;
       print('✅ ChatController initialization completed');
-
     } catch (e) {
       print('❌ ChatController initialization failed: $e');
       _handleOfflineMode();
@@ -2059,7 +2058,6 @@ class ChatController extends GetxController {
       _setupAuthenticationListener();
 
       print('✅ ChatController: Firebase services initialized');
-
     } catch (e) {
       print('❌ ChatController: Firebase services initialization failed: $e');
       _handleOfflineMode();
@@ -2084,7 +2082,6 @@ class ChatController extends GetxController {
       if (_firebaseService == null) {
         throw Exception('Failed to initialize FirebaseChatService');
       }
-
     } catch (e) {
       print('❌ Error setting up Firebase Chat Service: $e');
       rethrow;
@@ -2115,10 +2112,12 @@ class ChatController extends GetxController {
       }
 
       // Sign in anonymously (we'll manage the user identity through Firestore)
-      UserCredential userCredential = await FirebaseAuth.instance.signInAnonymously();
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInAnonymously();
 
       if (userCredential.user != null) {
-        print('✅ Firebase authentication successful: ${userCredential.user!.uid}');
+        print(
+            '✅ Firebase authentication successful: ${userCredential.user!.uid}');
 
         // Create/update user document with consistent ID
         await _ensureUserDocumentExists();
@@ -2129,7 +2128,6 @@ class ChatController extends GetxController {
       } else {
         throw Exception('Failed to authenticate with Firebase');
       }
-
     } catch (e) {
       print('❌ Firebase authentication failed: $e');
       _handleOfflineMode();
@@ -2155,7 +2153,8 @@ class ChatController extends GetxController {
           .get();
 
       if (chatsQuery.docs.isNotEmpty) {
-        print('🔄 Found ${chatsQuery.docs.length} chats to potentially migrate');
+        print(
+            '🔄 Found ${chatsQuery.docs.length} chats to potentially migrate');
 
         for (var doc in chatsQuery.docs) {
           await _migrateChatDocument(doc);
@@ -2169,8 +2168,6 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   /// Check if group image is base64
   bool isGroupImageBase64(Chat chat) {
     if (!chat.isGroup) return false;
@@ -2179,9 +2176,8 @@ class ChatController extends GetxController {
     return groupImage != null && groupImage.startsWith('data:image');
   }
 
-
-
-  Future<void> _updateLocalChatGroupImageEnhanced(String chatId, String newImageData) async {
+  Future<void> _updateLocalChatGroupImageEnhanced(
+      String chatId, String newImageData) async {
     try {
       print('🔄 Enhanced local chat group image update...');
       print('   Target chat ID: $chatId');
@@ -2197,8 +2193,9 @@ class ChatController extends GetxController {
         // Check multiple possible ID matches
         if (chat.id == chatId ||
             chat.apiGroupId == chatId ||
-            (chat.isGroup && chat.name.isNotEmpty && _matchesGroupName(chat, newImageData))) {
-
+            (chat.isGroup &&
+                chat.name.isNotEmpty &&
+                _matchesGroupName(chat, newImageData))) {
           print('🎯 Found matching chat in personalChats at index $i');
           print('   Chat ID: ${chat.id}');
           print('   API Group ID: ${chat.apiGroupId}');
@@ -2222,8 +2219,9 @@ class ChatController extends GetxController {
         // Check multiple possible ID matches
         if (chat.id == chatId ||
             chat.apiGroupId == chatId ||
-            (chat.isGroup && chat.name.isNotEmpty && _matchesGroupName(chat, newImageData))) {
-
+            (chat.isGroup &&
+                chat.name.isNotEmpty &&
+                _matchesGroupName(chat, newImageData))) {
           print('🎯 Found matching chat in groupChats at index $i');
           print('   Chat ID: ${chat.id}');
           print('   API Group ID: ${chat.apiGroupId}');
@@ -2245,9 +2243,10 @@ class ChatController extends GetxController {
         final currentChatValue = currentChat.value!;
         if (currentChatValue.id == chatId ||
             currentChatValue.apiGroupId == chatId ||
-            (currentChatValue.isGroup && _matchesGroupName(currentChatValue, newImageData))) {
-
-          final updatedCurrentChat = _createChatWithUpdatedImage(currentChatValue, newImageData);
+            (currentChatValue.isGroup &&
+                _matchesGroupName(currentChatValue, newImageData))) {
+          final updatedCurrentChat =
+              _createChatWithUpdatedImage(currentChatValue, newImageData);
           currentChat.value = updatedCurrentChat;
           foundAndUpdated = true;
 
@@ -2269,13 +2268,13 @@ class ChatController extends GetxController {
         print('✅ Local chat data updated and UI refreshed');
       } else {
         print('⚠️ No matching chat found for ID: $chatId');
-        print('⚠️ This might indicate a ChatID mismatch or the chat hasn\'t been loaded yet');
+        print(
+            '⚠️ This might indicate a ChatID mismatch or the chat hasn\'t been loaded yet');
 
         // Force a complete refresh as fallback
         print('🔄 Forcing complete chat refresh as fallback...');
         await forceRefreshChats();
       }
-
     } catch (e) {
       print('❌ Error in enhanced local chat update: $e');
     }
@@ -2292,7 +2291,8 @@ class ChatController extends GetxController {
   Chat _createChatWithUpdatedImage(Chat originalChat, String newImageData) {
     try {
       print('🔧 Creating updated chat with new image...');
-      print('   Original image: ${originalChat.groupImage?.substring(0, 50) ?? 'None'}...');
+      print(
+          '   Original image: ${originalChat.groupImage?.substring(0, 50) ?? 'None'}...');
       print('   New image: ${newImageData.substring(0, 50)}...');
 
       return Chat(
@@ -2319,7 +2319,8 @@ class ChatController extends GetxController {
   }
 
   // NEW: Verify Firestore has the updated image
-  Future<void> _verifyFirestoreImageUpdate(String chatId, String expectedImageData) async {
+  Future<void> _verifyFirestoreImageUpdate(
+      String chatId, String expectedImageData) async {
     try {
       print('🔍 Verifying Firestore has updated image...');
 
@@ -2365,14 +2366,14 @@ class ChatController extends GetxController {
       } else {
         print('❌ Chat document not found in Firestore');
       }
-
     } catch (e) {
       print('❌ Error verifying Firestore image update: $e');
     }
   }
 
   // ENHANCED: Update group image in chat list (direct method)
-  Future<void> updateGroupImageInChatList(String groupId, String newImageUrl) async {
+  Future<void> updateGroupImageInChatList(
+      String groupId, String newImageUrl) async {
     try {
       print('🔄 Direct update: Group image in chat list...');
       print('   Group ID: $groupId');
@@ -2389,7 +2390,6 @@ class ChatController extends GetxController {
       }
 
       print('✅ Direct chat list update completed');
-
     } catch (e) {
       print('❌ Error in direct chat list update: $e');
     }
@@ -2414,7 +2414,8 @@ class ChatController extends GetxController {
     try {
       print('🔄 ChatController: Group image updated notification received');
       print('   Chat ID: $chatId');
-      print('   New image data type: ${newImageData.startsWith('data:image') ? 'Base64' : 'URL'}');
+      print(
+          '   New image data type: ${newImageData.startsWith('data:image') ? 'Base64' : 'URL'}');
       print('   Image data length: ${newImageData.length}');
 
       // Update local chat data immediately
@@ -2424,13 +2425,13 @@ class ChatController extends GetxController {
       refreshChatListUI();
 
       print('✅ ChatController: Group image sync completed');
-
     } catch (e) {
       print('❌ ChatController: Error syncing group image: $e');
     }
   }
 
-  Future<void> _updateLocalChatGroupImage(String chatId, String newImageData) async {
+  Future<void> _updateLocalChatGroupImage(
+      String chatId, String newImageData) async {
     try {
       print('🔄 Updating group image in ChatController local lists...');
       bool foundAndUpdated = false;
@@ -2442,7 +2443,8 @@ class ChatController extends GetxController {
 
           // Create updated chat with new image
           final originalChat = groupChats[i];
-          final updatedChat = _createUpdatedChatWithImage(originalChat, newImageData);
+          final updatedChat =
+              _createUpdatedChatWithImage(originalChat, newImageData);
 
           groupChats[i] = updatedChat;
           groupChats.refresh();
@@ -2459,7 +2461,8 @@ class ChatController extends GetxController {
           print('🎯 Found group in personalChats list at index $i');
 
           final originalChat = personalChats[i];
-          final updatedChat = _createUpdatedChatWithImage(originalChat, newImageData);
+          final updatedChat =
+              _createUpdatedChatWithImage(originalChat, newImageData);
 
           personalChats[i] = updatedChat;
           personalChats.refresh();
@@ -2473,7 +2476,8 @@ class ChatController extends GetxController {
       // Update current chat if viewing this group
       if (currentChat.value?.id == chatId) {
         final currentChatValue = currentChat.value!;
-        final updatedCurrentChat = _createUpdatedChatWithImage(currentChatValue, newImageData);
+        final updatedCurrentChat =
+            _createUpdatedChatWithImage(currentChatValue, newImageData);
         currentChat.value = updatedCurrentChat;
         print('✅ Updated current chat group image');
       }
@@ -2483,14 +2487,13 @@ class ChatController extends GetxController {
         _applySearchFilter();
         print('✅ Applied search filters after group image update');
       } else {
-        print('⚠️ Group not found in local lists, will be updated on next refresh');
+        print(
+            '⚠️ Group not found in local lists, will be updated on next refresh');
       }
-
     } catch (e) {
       print('❌ Error updating local chat group image: $e');
     }
   }
-
 
   Chat _createUpdatedChatWithImage(Chat originalChat, String newImageData) {
     try {
@@ -2534,273 +2537,271 @@ class ChatController extends GetxController {
     }
   }
 
-
   final Map<String, String> _persistentGroupImageCache = {};
   final Map<String, DateTime> _groupImageCacheTimestamp = {};
 
   // FIXED: Method to get group display image with persistent caching
   String getGroupDisplayImage(Chat chat) {
-  try {
-  print('🖼️ Getting group display image for: ${chat.id}');
-  print('   Is Group: ${chat.isGroup}');
-  print('   Chat Name: ${chat.name}');
+    try {
+      print('🖼️ Getting group display image for: ${chat.id}');
+      print('   Is Group: ${chat.isGroup}');
+      print('   Chat Name: ${chat.name}');
 
-  if (!chat.isGroup) {
-  return chat.getDisplayAvatar(currentUserId) ?? CustomImage.avator;
-  }
+      if (!chat.isGroup) {
+        return chat.getDisplayAvatar(currentUserId) ?? CustomImage.avator;
+      }
 
-  final chatId = chat.id;
+      final chatId = chat.id;
 
-  // Step 1: Check persistent cache first (prevents loss during rebuilds)
-  if (_persistentGroupImageCache.containsKey(chatId)) {
-  final cachedImage = _persistentGroupImageCache[chatId]!;
-  final cacheTime = _groupImageCacheTimestamp[chatId]!;
+      // Step 1: Check persistent cache first (prevents loss during rebuilds)
+      if (_persistentGroupImageCache.containsKey(chatId)) {
+        final cachedImage = _persistentGroupImageCache[chatId]!;
+        final cacheTime = _groupImageCacheTimestamp[chatId]!;
 
-  // Use cache if less than 10 minutes old and not empty
-  if (DateTime.now().difference(cacheTime).inMinutes < 10 &&
-  cachedImage.isNotEmpty &&
-  cachedImage != CustomImage.userGroup) {
-  print('📦 Using persistent cached group image');
-  return cachedImage;
-  }
-  }
+        // Use cache if less than 10 minutes old and not empty
+        if (DateTime.now().difference(cacheTime).inMinutes < 10 &&
+            cachedImage.isNotEmpty &&
+            cachedImage != CustomImage.userGroup) {
+          print('📦 Using persistent cached group image');
+          return cachedImage;
+        }
+      }
 
-  // Step 2: Get from chat object and validate
-  final groupImage = chat.groupImage ?? '';
-  print('   Raw group image: ${groupImage.length} chars');
-  print('   Image type: ${_getImageType(groupImage)}');
+      // Step 2: Get from chat object and validate
+      final groupImage = chat.groupImage ?? '';
+      print('   Raw group image: ${groupImage.length} chars');
+      print('   Image type: ${_getImageType(groupImage)}');
 
-  if (_isValidGroupImage(groupImage)) {
-  print('✅ Valid group image found, caching it');
-  // Cache the valid image
-  _persistentGroupImageCache[chatId] = groupImage;
-  _groupImageCacheTimestamp[chatId] = DateTime.now();
-  return groupImage;
-  }
+      if (_isValidGroupImage(groupImage)) {
+        print('✅ Valid group image found, caching it');
+        // Cache the valid image
+        _persistentGroupImageCache[chatId] = groupImage;
+        _groupImageCacheTimestamp[chatId] = DateTime.now();
+        return groupImage;
+      }
 
-  // Step 3: Try to get from GroupController if available
-  try {
-  if (Get.isRegistered<GroupController>()) {
-  final groupController = Get.find<GroupController>();
-  if (groupController.groupId == chatId) {
-  final groupControllerImage = groupController.getDisplayImage();
-  if (_isValidGroupImage(groupControllerImage) &&
-  groupControllerImage != CustomImage.userGroup) {
-  print('📦 Using image from GroupController');
-  // Cache it for future use
-  _persistentGroupImageCache[chatId] = groupControllerImage;
-  _groupImageCacheTimestamp[chatId] = DateTime.now();
+      // Step 3: Try to get from GroupController if available
+      try {
+        if (Get.isRegistered<GroupController>()) {
+          final groupController = Get.find<GroupController>();
+          if (groupController.groupId == chatId) {
+            final groupControllerImage = groupController.getDisplayImage();
+            if (_isValidGroupImage(groupControllerImage) &&
+                groupControllerImage != CustomImage.userGroup) {
+              print('📦 Using image from GroupController');
+              // Cache it for future use
+              _persistentGroupImageCache[chatId] = groupControllerImage;
+              _groupImageCacheTimestamp[chatId] = DateTime.now();
 
-  // Also update the chat object to prevent future misses
-  _updateChatGroupImageSilently(chatId, groupControllerImage);
+              // Also update the chat object to prevent future misses
+              _updateChatGroupImageSilently(chatId, groupControllerImage);
 
-  return groupControllerImage;
-  }
-  }
-  }
-  } catch (e) {
-  print('⚠️ Could not get image from GroupController: $e');
-  }
+              return groupControllerImage;
+            }
+          }
+        }
+      } catch (e) {
+        print('⚠️ Could not get image from GroupController: $e');
+      }
 
-  // Step 4: Try to fetch from Firestore in background
-  _fetchGroupImageFromFirestoreBackground(chatId);
+      // Step 4: Try to fetch from Firestore in background
+      _fetchGroupImageFromFirestoreBackground(chatId);
 
-  // Step 5: Return default
-  print('📁 Using default group image');
-  return CustomImage.userGroup;
-
-  } catch (e) {
-  print('❌ Error getting group display image: $e');
-  return CustomImage.userGroup;
-  }
+      // Step 5: Return default
+      print('📁 Using default group image');
+      return CustomImage.userGroup;
+    } catch (e) {
+      print('❌ Error getting group display image: $e');
+      return CustomImage.userGroup;
+    }
   }
 
   // Helper method to validate group image
   bool _isValidGroupImage(String? imageData) {
-  if (imageData == null ||
-  imageData.isEmpty ||
-  imageData == 'null' ||
-  imageData == 'undefined' ||
-  imageData == CustomImage.userGroup) {
-  return false;
-  }
+    if (imageData == null ||
+        imageData.isEmpty ||
+        imageData == 'null' ||
+        imageData == 'undefined' ||
+        imageData == CustomImage.userGroup) {
+      return false;
+    }
 
-  // Valid formats
-  return imageData.startsWith('data:image') ||
-  imageData.startsWith('http') ||
-  imageData.startsWith('assets/') ||
-  (imageData.length > 100); // Assume long strings are base64
+    // Valid formats
+    return imageData.startsWith('data:image') ||
+        imageData.startsWith('http') ||
+        imageData.startsWith('assets/') ||
+        (imageData.length > 100); // Assume long strings are base64
   }
 
   // FIXED: Silent update method that doesn't trigger UI rebuilds
   void _updateChatGroupImageSilently(String chatId, String newImageData) {
-  try {
-  // Update in personal chats without triggering rebuilds
-  for (int i = 0; i < personalChats.length; i++) {
-  if (personalChats[i].id == chatId && personalChats[i].groupImage != newImageData) {
-  final updatedChat = Chat(
-  id: personalChats[i].id,
-  name: personalChats[i].name,
-  participants: personalChats[i].participants,
-  isGroup: personalChats[i].isGroup,
-  description: personalChats[i].description,
-  createdBy: personalChats[i].createdBy,
-  createdAt: personalChats[i].createdAt,
-  lastMessage: personalChats[i].lastMessage,
-  lastMessageTimestamp: personalChats[i].lastMessageTimestamp,
-  lastMessageSender: personalChats[i].lastMessageSender,
-  participantDetails: personalChats[i].participantDetails,
-  unreadCounts: personalChats[i].unreadCounts,
-  groupImage: newImageData, // Update the group image
-  apiGroupId: personalChats[i].apiGroupId,
-  );
-  personalChats[i] = updatedChat;
-  break;
-  }
-  }
+    try {
+      // Update in personal chats without triggering rebuilds
+      for (int i = 0; i < personalChats.length; i++) {
+        if (personalChats[i].id == chatId &&
+            personalChats[i].groupImage != newImageData) {
+          final updatedChat = Chat(
+            id: personalChats[i].id,
+            name: personalChats[i].name,
+            participants: personalChats[i].participants,
+            isGroup: personalChats[i].isGroup,
+            description: personalChats[i].description,
+            createdBy: personalChats[i].createdBy,
+            createdAt: personalChats[i].createdAt,
+            lastMessage: personalChats[i].lastMessage,
+            lastMessageTimestamp: personalChats[i].lastMessageTimestamp,
+            lastMessageSender: personalChats[i].lastMessageSender,
+            participantDetails: personalChats[i].participantDetails,
+            unreadCounts: personalChats[i].unreadCounts,
+            groupImage: newImageData, // Update the group image
+            apiGroupId: personalChats[i].apiGroupId,
+          );
+          personalChats[i] = updatedChat;
+          break;
+        }
+      }
 
-  // Update in group chats without triggering rebuilds
-  for (int i = 0; i < groupChats.length; i++) {
-  if (groupChats[i].id == chatId && groupChats[i].groupImage != newImageData) {
-  final updatedChat = Chat(
-  id: groupChats[i].id,
-  name: groupChats[i].name,
-  participants: groupChats[i].participants,
-  isGroup: groupChats[i].isGroup,
-  description: groupChats[i].description,
-  createdBy: groupChats[i].createdBy,
-  createdAt: groupChats[i].createdAt,
-  lastMessage: groupChats[i].lastMessage,
-  lastMessageTimestamp: groupChats[i].lastMessageTimestamp,
-  lastMessageSender: groupChats[i].lastMessageSender,
-  participantDetails: groupChats[i].participantDetails,
-  unreadCounts: groupChats[i].unreadCounts,
-  groupImage: newImageData, // Update the group image
-  apiGroupId: groupChats[i].apiGroupId,
-  );
-  groupChats[i] = updatedChat;
-  break;
-  }
-  }
+      // Update in group chats without triggering rebuilds
+      for (int i = 0; i < groupChats.length; i++) {
+        if (groupChats[i].id == chatId &&
+            groupChats[i].groupImage != newImageData) {
+          final updatedChat = Chat(
+            id: groupChats[i].id,
+            name: groupChats[i].name,
+            participants: groupChats[i].participants,
+            isGroup: groupChats[i].isGroup,
+            description: groupChats[i].description,
+            createdBy: groupChats[i].createdBy,
+            createdAt: groupChats[i].createdAt,
+            lastMessage: groupChats[i].lastMessage,
+            lastMessageTimestamp: groupChats[i].lastMessageTimestamp,
+            lastMessageSender: groupChats[i].lastMessageSender,
+            participantDetails: groupChats[i].participantDetails,
+            unreadCounts: groupChats[i].unreadCounts,
+            groupImage: newImageData, // Update the group image
+            apiGroupId: groupChats[i].apiGroupId,
+          );
+          groupChats[i] = updatedChat;
+          break;
+        }
+      }
 
-  print('✅ Chat group image updated silently');
-  } catch (e) {
-  print('❌ Error in silent update: $e');
-  }
+      print('✅ Chat group image updated silently');
+    } catch (e) {
+      print('❌ Error in silent update: $e');
+    }
   }
 
   // Background fetch method that doesn't block UI
   void _fetchGroupImageFromFirestoreBackground(String chatId) {
-  // Use Future.delayed to avoid blocking the UI
-  Future.delayed(Duration(milliseconds: 100), () async {
-  try {
-  print('🔍 Background fetch of group image for: $chatId');
+    // Use Future.delayed to avoid blocking the UI
+    Future.delayed(Duration(milliseconds: 100), () async {
+      try {
+        print('🔍 Background fetch of group image for: $chatId');
 
-  final doc = await FirebaseFirestore.instance
-      .collection('chats')
-      .doc(chatId)
-      .get();
+        final doc = await FirebaseFirestore.instance
+            .collection('chats')
+            .doc(chatId)
+            .get();
 
-  if (doc.exists && doc.data() != null) {
-  final data = doc.data()!;
-  final firestoreImage = data['groupImage']?.toString() ?? '';
+        if (doc.exists && doc.data() != null) {
+          final data = doc.data()!;
+          final firestoreImage = data['groupImage']?.toString() ?? '';
 
-  if (_isValidGroupImage(firestoreImage)) {
-  print('✅ Found valid group image in Firestore');
+          if (_isValidGroupImage(firestoreImage)) {
+            print('✅ Found valid group image in Firestore');
 
-  // Cache it
-  _persistentGroupImageCache[chatId] = firestoreImage;
-  _groupImageCacheTimestamp[chatId] = DateTime.now();
+            // Cache it
+            _persistentGroupImageCache[chatId] = firestoreImage;
+            _groupImageCacheTimestamp[chatId] = DateTime.now();
 
-  // Update chat objects silently
-  _updateChatGroupImageSilently(chatId, firestoreImage);
+            // Update chat objects silently
+            _updateChatGroupImageSilently(chatId, firestoreImage);
 
-  // Gentle UI refresh after a short delay
-  Future.delayed(Duration(milliseconds: 200), () {
-  _refreshChatListsGently();
-  });
-  }
-  }
-  } catch (e) {
-  print('❌ Error in background fetch: $e');
-  }
-  });
+            // Gentle UI refresh after a short delay
+            Future.delayed(Duration(milliseconds: 200), () {
+              _refreshChatListsGently();
+            });
+          }
+        }
+      } catch (e) {
+        print('❌ Error in background fetch: $e');
+      }
+    });
   }
 
   // FIXED: Gentle refresh that doesn't cause flickering
   void _refreshChatListsGently() {
-  try {
-  // Only refresh the lists, don't force complete rebuilds
-  personalChats.refresh();
-  groupChats.refresh();
+    try {
+      // Only refresh the lists, don't force complete rebuilds
+      personalChats.refresh();
+      groupChats.refresh();
 
-  // Update filtered lists
-  _applySearchFilter();
+      // Update filtered lists
+      _applySearchFilter();
 
-  print('✅ Gentle refresh completed');
-  } catch (e) {
-  print('❌ Error in gentle refresh: $e');
+      print('✅ Gentle refresh completed');
+    } catch (e) {
+      print('❌ Error in gentle refresh: $e');
+    }
   }
-  }
-
-
 
   // Method to manually refresh a specific group's image
   Future<void> refreshSpecificGroupImage(String chatId) async {
-  try {
-  print('🔄 Manually refreshing group image for: $chatId');
+    try {
+      print('🔄 Manually refreshing group image for: $chatId');
 
-  // Clear cache for this group
-  _persistentGroupImageCache.remove(chatId);
-  _groupImageCacheTimestamp.remove(chatId);
+      // Clear cache for this group
+      _persistentGroupImageCache.remove(chatId);
+      _groupImageCacheTimestamp.remove(chatId);
 
-  // Fetch fresh from Firestore
-  final doc = await FirebaseFirestore.instance
-      .collection('chats')
-      .doc(chatId)
-      .get();
+      // Fetch fresh from Firestore
+      final doc = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .get();
 
-  if (doc.exists && doc.data() != null) {
-  final data = doc.data()!;
-  final freshImage = data['groupImage']?.toString() ?? '';
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        final freshImage = data['groupImage']?.toString() ?? '';
 
-  if (_isValidGroupImage(freshImage)) {
-  // Update cache and chat objects
-  _persistentGroupImageCache[chatId] = freshImage;
-  _groupImageCacheTimestamp[chatId] = DateTime.now();
-  _updateChatGroupImageSilently(chatId, freshImage);
+        if (_isValidGroupImage(freshImage)) {
+          // Update cache and chat objects
+          _persistentGroupImageCache[chatId] = freshImage;
+          _groupImageCacheTimestamp[chatId] = DateTime.now();
+          _updateChatGroupImageSilently(chatId, freshImage);
 
-  // Refresh UI
-  _refreshChatListsGently();
+          // Refresh UI
+          _refreshChatListsGently();
 
-  print('✅ Group image refreshed successfully');
-  }
-  }
-  } catch (e) {
-  print('❌ Error refreshing group image: $e');
-  }
+          print('✅ Group image refreshed successfully');
+        }
+      }
+    } catch (e) {
+      print('❌ Error refreshing group image: $e');
+    }
   }
 
   // Method to clear all group image cache
   void clearAllGroupImageCache() {
-  print('🧹 Clearing all group image cache');
-  _persistentGroupImageCache.clear();
-  _groupImageCacheTimestamp.clear();
+    print('🧹 Clearing all group image cache');
+    _persistentGroupImageCache.clear();
+    _groupImageCacheTimestamp.clear();
   }
 
   // Debug method to check cache status
   void debugGroupImageCache() {
-  print('🔍 Group Image Cache Status:');
-  print('   Cached groups: ${_persistentGroupImageCache.length}');
+    print('🔍 Group Image Cache Status:');
+    print('   Cached groups: ${_persistentGroupImageCache.length}');
 
-  _persistentGroupImageCache.forEach((chatId, imageData) {
-  final timestamp = _groupImageCacheTimestamp[chatId];
-  final age = timestamp != null ? DateTime.now().difference(timestamp).inMinutes : 0;
-  print('   - $chatId: ${_getImageType(imageData)} (${age}min old)');
-  });
+    _persistentGroupImageCache.forEach((chatId, imageData) {
+      final timestamp = _groupImageCacheTimestamp[chatId];
+      final age = timestamp != null
+          ? DateTime.now().difference(timestamp).inMinutes
+          : 0;
+      print('   - $chatId: ${_getImageType(imageData)} (${age}min old)');
+    });
   }
-
-
 
   String getPersonalChatDisplayImage(Chat chat) {
     try {
@@ -2816,15 +2817,14 @@ class ChatController extends GetxController {
 
       // Return default if no avatar found
       return CustomImage.avator;
-
     } catch (e) {
       print('❌ Error getting personal chat display image: $e');
       return CustomImage.avator;
     }
   }
 
-
-  Chat _createChatFromFirestoreDataEnhanced(String docId, Map<String, dynamic> data) {
+  Chat _createChatFromFirestoreDataEnhanced(
+      String docId, Map<String, dynamic> data) {
     try {
       print('🔧 Creating chat from Firestore data for: $docId');
       print('📄 Raw data keys: ${data.keys.toList()}');
@@ -2835,32 +2835,45 @@ class ChatController extends GetxController {
 
       // ENHANCED: Extract group image with multiple possible field names and validation
       String groupImage = '';
-      final possibleImageFields = ['groupImage', 'group_image', 'image', 'group_img', 'img'];
+      final possibleImageFields = [
+        'groupImage',
+        'group_image',
+        'image',
+        'group_img',
+        'img'
+      ];
 
       for (String field in possibleImageFields) {
         if (data.containsKey(field)) {
           final imageValue = data[field]?.toString() ?? '';
-          if (imageValue.isNotEmpty && imageValue != 'null' && imageValue != 'undefined') {
+          if (imageValue.isNotEmpty &&
+              imageValue != 'null' &&
+              imageValue != 'undefined') {
             groupImage = imageValue;
-            print('📸 Found group image in field "$field": ${imageValue.length > 50 ? "${imageValue.substring(0, 50)}..." : imageValue}');
+            print(
+                '📸 Found group image in field "$field": ${imageValue.length > 50 ? "${imageValue.substring(0, 50)}..." : imageValue}');
             break;
           }
         }
       }
 
-      print('📸 Final group image: ${groupImage.length > 50 ? "${groupImage.substring(0, 50)}..." : groupImage}');
+      print(
+          '📸 Final group image: ${groupImage.length > 50 ? "${groupImage.substring(0, 50)}..." : groupImage}');
       print('📸 Image type: ${_getImageType(groupImage)}');
 
       // Extract participant details safely
-      final participantDetailsRaw = data['participantDetails'] as Map<String, dynamic>? ?? {};
-      print('📝 Raw participant details: ${participantDetailsRaw.keys.toList()}');
+      final participantDetailsRaw =
+          data['participantDetails'] as Map<String, dynamic>? ?? {};
+      print(
+          '📝 Raw participant details: ${participantDetailsRaw.keys.toList()}');
 
       // Build participant details map with null safety
       Map<String, ParticipantInfo> participantDetails = {};
 
       for (String participantId in participants) {
         try {
-          final detailsRaw = participantDetailsRaw[participantId] as Map<String, dynamic>?;
+          final detailsRaw =
+              participantDetailsRaw[participantId] as Map<String, dynamic>?;
 
           if (detailsRaw != null) {
             participantDetails[participantId] = ParticipantInfo(
@@ -2879,7 +2892,8 @@ class ChatController extends GetxController {
             );
           }
 
-          print('✅ Created participant info for: ${participantDetails[participantId]?.name}');
+          print(
+              '✅ Created participant info for: ${participantDetails[participantId]?.name}');
         } catch (e) {
           print('❌ Error creating participant info for $participantId: $e');
           // Create minimal participant info
@@ -2893,11 +2907,13 @@ class ChatController extends GetxController {
       }
 
       // Extract unread counts safely
-      final unreadCountsRaw = data['unreadCounts'] as Map<String, dynamic>? ?? {};
+      final unreadCountsRaw =
+          data['unreadCounts'] as Map<String, dynamic>? ?? {};
       Map<String, int> unreadCounts = {};
 
       for (String participantId in participants) {
-        unreadCounts[participantId] = (unreadCountsRaw[participantId] as num?)?.toInt() ?? 0;
+        unreadCounts[participantId] =
+            (unreadCountsRaw[participantId] as num?)?.toInt() ?? 0;
       }
 
       // Extract timestamps safely
@@ -2914,7 +2930,8 @@ class ChatController extends GetxController {
 
       try {
         if (data['lastMessageTimestamp'] != null) {
-          lastMessageTimestamp = (data['lastMessageTimestamp'] as Timestamp).toDate();
+          lastMessageTimestamp =
+              (data['lastMessageTimestamp'] as Timestamp).toDate();
         }
       } catch (e) {
         print('⚠️ Error parsing lastMessageTimestamp: $e');
@@ -2933,7 +2950,8 @@ class ChatController extends GetxController {
       print('   - ID: $docId');
       print('   - Name: $name');
       print('   - Is Group: $isGroup');
-      print('   - Group Image: ${groupImage.isNotEmpty ? "Set (${_getImageType(groupImage)}, ${groupImage.length} chars)" : "None"}');
+      print(
+          '   - Group Image: ${groupImage.isNotEmpty ? "Set (${_getImageType(groupImage)}, ${groupImage.length} chars)" : "None"}');
       print('   - Participants: ${participants.length}');
       print('   - Last Message: "$lastMessage"');
 
@@ -2956,7 +2974,6 @@ class ChatController extends GetxController {
 
       print('✅ Successfully created chat object with group image: $docId');
       return chat;
-
     } catch (e) {
       print('❌ Error in _createChatFromFirestoreDataEnhanced for $docId: $e');
       print('❌ Stack trace: ${StackTrace.current}');
@@ -2980,21 +2997,23 @@ class ChatController extends GetxController {
           .where('isGroup', isEqualTo: true)
           .snapshots()
           .listen((snapshot) {
-
-        print('📨 Group image listener: Received update for ${snapshot.docs.length} groups');
+        print(
+            '📨 Group image listener: Received update for ${snapshot.docs.length} groups');
 
         for (var change in snapshot.docChanges) {
           try {
             final chatId = change.doc.id;
             final data = change.doc.data() as Map<String, dynamic>? ?? {};
 
-            print('🔍 Processing change for group: $chatId, type: ${change.type}');
+            print(
+                '🔍 Processing change for group: $chatId, type: ${change.type}');
 
             if (change.type == DocumentChangeType.modified) {
               final newGroupImage = data['groupImage']?.toString() ?? '';
               final imageUpdatedAt = data['imageUpdatedAt'];
 
-              print('📸 Group $chatId image data: ${newGroupImage.isNotEmpty ? "Present (${newGroupImage.length} chars)" : "Empty"}');
+              print(
+                  '📸 Group $chatId image data: ${newGroupImage.isNotEmpty ? "Present (${newGroupImage.length} chars)" : "Empty"}');
 
               // Check if group image was actually updated
               final existingChat = [...personalChats, ...groupChats]
@@ -3005,7 +3024,8 @@ class ChatController extends GetxController {
 
                 if (currentImage != newGroupImage && newGroupImage.isNotEmpty) {
                   print('🔄 Detected group image change for $chatId');
-                  print('   Old: ${currentImage.isEmpty ? "Empty" : "${currentImage.substring(0, 30)}..."}');
+                  print(
+                      '   Old: ${currentImage.isEmpty ? "Empty" : "${currentImage.substring(0, 30)}..."}');
                   print('   New: ${newGroupImage.substring(0, 30)}...');
 
                   // Update local chat data immediately
@@ -3022,24 +3042,23 @@ class ChatController extends GetxController {
                 _createMissingGroupFromFirestore(chatId, data);
               }
             }
-
           } catch (changeError) {
-            print('❌ Error processing group change ${change.doc.id}: $changeError');
+            print(
+                '❌ Error processing group change ${change.doc.id}: $changeError');
           }
         }
-
       }, onError: (error) {
         print('❌ Error in group image update listener: $error');
       });
 
       print('✅ Enhanced group image update listener established');
-
     } catch (e) {
       print('❌ Error setting up group image update listener: $e');
     }
   }
 
-  Future<void> _createMissingGroupFromFirestore(String chatId, Map<String, dynamic> data) async {
+  Future<void> _createMissingGroupFromFirestore(
+      String chatId, Map<String, dynamic> data) async {
     try {
       print('🔄 Creating missing group from Firestore: $chatId');
 
@@ -3057,7 +3076,6 @@ class ChatController extends GetxController {
 
       _applySearchFilter();
       refreshChatListUI();
-
     } catch (e) {
       print('❌ Error creating missing group: $e');
     }
@@ -3090,7 +3108,8 @@ class ChatController extends GetxController {
           // Log group image data for debugging
           if (data['isGroup'] == true) {
             final groupImage = data['groupImage']?.toString() ?? '';
-            print('📸 Group ${doc.id} has image: ${groupImage.isNotEmpty ? "Yes (${groupImage.length} chars)" : "No"}');
+            print(
+                '📸 Group ${doc.id} has image: ${groupImage.isNotEmpty ? "Yes (${groupImage.length} chars)" : "No"}');
           }
 
           // Use enhanced method that handles group images properly
@@ -3098,7 +3117,6 @@ class ChatController extends GetxController {
           chats.add(chat);
 
           print('✅ Successfully processed chat with image: ${doc.id}');
-
         } catch (e) {
           print('❌ Error processing chat ${doc.id}: $e');
         }
@@ -3108,17 +3126,11 @@ class ChatController extends GetxController {
       _processChatData(chats);
 
       connectionStatus.value = 'Connected';
-
     } catch (e) {
       print('❌ Error in force refresh with group images: $e');
       connectionStatus.value = 'Connected (Local)';
     }
   }
-
-
-
-
-
 
 // 11. ADD chat matching helper to ChatController
   bool _chatMatches(Chat chat, String targetId) {
@@ -3126,8 +3138,6 @@ class ChatController extends GetxController {
         chat.apiGroupId == targetId ||
         (chat.isGroup && chat.name.isNotEmpty && chat.id.contains(targetId));
   }
-
-
 
   // Enhanced ChatController methods for proper group image sync
 
@@ -3156,14 +3166,14 @@ class ChatController extends GetxController {
           print('✅ Refreshed group image from Firestore');
         }
       }
-
     } catch (e) {
       print('❌ Error refreshing group image: $e');
     }
   }
 
 // 2. ADD this new comprehensive local update method:
-  Future<void> _updateLocalChatGroupImageComprehensive(String chatId, String newImageData) async {
+  Future<void> _updateLocalChatGroupImageComprehensive(
+      String chatId, String newImageData) async {
     try {
       print('🔄 Comprehensive local update for chat: $chatId');
       print('   Image data length: ${newImageData.length}');
@@ -3175,7 +3185,8 @@ class ChatController extends GetxController {
       for (int i = 0; i < personalChats.length; i++) {
         if (_chatMatches(personalChats[i], chatId)) {
           print('🎯 Found chat in personalChats at index $i');
-          personalChats[i] = _createUpdatedChatWithImage(personalChats[i], newImageData);
+          personalChats[i] =
+              _createUpdatedChatWithImage(personalChats[i], newImageData);
           updated = true;
           print('✅ Updated in personalChats at index $i');
           break;
@@ -3186,7 +3197,8 @@ class ChatController extends GetxController {
       for (int i = 0; i < groupChats.length; i++) {
         if (_chatMatches(groupChats[i], chatId)) {
           print('🎯 Found chat in groupChats at index $i');
-          personalChats[i] = _createUpdatedChatWithImage(groupChats[i], newImageData);
+          personalChats[i] =
+              _createUpdatedChatWithImage(groupChats[i], newImageData);
           updated = true;
           print('✅ Updated in groupChats at index $i');
           break;
@@ -3194,8 +3206,10 @@ class ChatController extends GetxController {
       }
 
       // Update current chat if it matches
-      if (currentChat.value != null && _chatMatches(currentChat.value!, chatId)) {
-        currentChat.value = _createUpdatedChatWithImage(currentChat.value!, newImageData);
+      if (currentChat.value != null &&
+          _chatMatches(currentChat.value!, chatId)) {
+        currentChat.value =
+            _createUpdatedChatWithImage(currentChat.value!, newImageData);
         updated = true;
         print('✅ Updated current chat');
       }
@@ -3216,14 +3230,13 @@ class ChatController extends GetxController {
       } else {
         print('⚠️ No matching chat found for update');
       }
-
     } catch (e) {
       print('❌ Error in comprehensive local update: $e');
     }
   }
 
-
-  Future<void> updateGroupImageWithFullSync(String chatId, String newImageData) async {
+  Future<void> updateGroupImageWithFullSync(
+      String chatId, String newImageData) async {
     try {
       print('🔄 ChatController: Full sync group image update');
       print('   Chat ID: $chatId');
@@ -3243,7 +3256,6 @@ class ChatController extends GetxController {
       _triggerReactiveUpdates();
 
       print('✅ ChatController: Full sync completed successfully');
-
     } catch (e) {
       print('❌ ChatController: Error in full sync: $e');
     }
@@ -3274,7 +3286,6 @@ class ChatController extends GetxController {
       } else {
         print('❌ Firestore verification: Document not found');
       }
-
     } catch (e) {
       print('❌ Error in Firestore verification: $e');
     }
@@ -3305,7 +3316,6 @@ class ChatController extends GetxController {
       await Future.delayed(Duration(milliseconds: 100));
 
       print('✅ Complete UI refresh finished');
-
     } catch (e) {
       print('❌ Error in complete UI refresh: $e');
     }
@@ -3327,7 +3337,6 @@ class ChatController extends GetxController {
       update();
 
       print('✅ Reactive updates triggered');
-
     } catch (e) {
       print('❌ Error triggering reactive updates: $e');
     }
@@ -3343,9 +3352,6 @@ class ChatController extends GetxController {
     }
   }
 
-
-
-
   Future<void> _initializeFirebaseServicesEnhanced() async {
     try {
       print('🔥 ChatController: Initializing Firebase services...');
@@ -3360,8 +3366,8 @@ class ChatController extends GetxController {
       // NEW: Setup group image update listener
       _setupGroupImageUpdateListener();
 
-      print('✅ ChatController: Firebase services initialized with group image sync');
-
+      print(
+          '✅ ChatController: Firebase services initialized with group image sync');
     } catch (e) {
       print('❌ ChatController: Firebase services initialization failed: $e');
       _handleOfflineMode();
@@ -3369,8 +3375,6 @@ class ChatController extends GetxController {
       isLoading.value = false;
     }
   }
-
-
 
   /// Enhanced method to force refresh chats with group image awareness
   Future<void> forceRefreshChatsWithImages() async {
@@ -3402,7 +3406,6 @@ class ChatController extends GetxController {
           chats.add(chat);
 
           print('✅ Successfully processed chat with image: ${doc.id}');
-
         } catch (e) {
           print('❌ Error processing chat ${doc.id}: $e');
         }
@@ -3412,15 +3415,14 @@ class ChatController extends GetxController {
       _processChatData(chats);
 
       connectionStatus.value = 'Connected';
-
     } catch (e) {
       print('❌ Error in force refresh with images: $e');
       connectionStatus.value = 'Connected (Local)';
     }
   }
 
-
-  Chat _createChatFromFirestoreDataWithGroupImage(String docId, Map<String, dynamic> data) {
+  Chat _createChatFromFirestoreDataWithGroupImage(
+      String docId, Map<String, dynamic> data) {
     try {
       print('🔧 Creating chat from Firestore data for: $docId');
       print('📄 Raw data keys: ${data.keys.toList()}');
@@ -3439,19 +3441,23 @@ class ChatController extends GetxController {
         groupImage = data['image']?.toString() ?? '';
       }
 
-      print('📸 Group image extracted: ${groupImage.length > 50 ? "${groupImage.substring(0, 50)}..." : groupImage}');
+      print(
+          '📸 Group image extracted: ${groupImage.length > 50 ? "${groupImage.substring(0, 50)}..." : groupImage}');
       print('📸 Image type: ${_getImageType(groupImage)}');
 
       // Extract participant details safely
-      final participantDetailsRaw = data['participantDetails'] as Map<String, dynamic>? ?? {};
-      print('📝 Raw participant details: ${participantDetailsRaw.keys.toList()}');
+      final participantDetailsRaw =
+          data['participantDetails'] as Map<String, dynamic>? ?? {};
+      print(
+          '📝 Raw participant details: ${participantDetailsRaw.keys.toList()}');
 
       // Build participant details map with null safety
       Map<String, ParticipantInfo> participantDetails = {};
 
       for (String participantId in participants) {
         try {
-          final detailsRaw = participantDetailsRaw[participantId] as Map<String, dynamic>?;
+          final detailsRaw =
+              participantDetailsRaw[participantId] as Map<String, dynamic>?;
 
           if (detailsRaw != null) {
             participantDetails[participantId] = ParticipantInfo(
@@ -3470,7 +3476,8 @@ class ChatController extends GetxController {
             );
           }
 
-          print('✅ Created participant info for: ${participantDetails[participantId]?.name}');
+          print(
+              '✅ Created participant info for: ${participantDetails[participantId]?.name}');
         } catch (e) {
           print('❌ Error creating participant info for $participantId: $e');
           // Create minimal participant info
@@ -3484,11 +3491,13 @@ class ChatController extends GetxController {
       }
 
       // Extract unread counts safely
-      final unreadCountsRaw = data['unreadCounts'] as Map<String, dynamic>? ?? {};
+      final unreadCountsRaw =
+          data['unreadCounts'] as Map<String, dynamic>? ?? {};
       Map<String, int> unreadCounts = {};
 
       for (String participantId in participants) {
-        unreadCounts[participantId] = (unreadCountsRaw[participantId] as num?)?.toInt() ?? 0;
+        unreadCounts[participantId] =
+            (unreadCountsRaw[participantId] as num?)?.toInt() ?? 0;
       }
 
       // Extract timestamps safely
@@ -3505,7 +3514,8 @@ class ChatController extends GetxController {
 
       try {
         if (data['lastMessageTimestamp'] != null) {
-          lastMessageTimestamp = (data['lastMessageTimestamp'] as Timestamp).toDate();
+          lastMessageTimestamp =
+              (data['lastMessageTimestamp'] as Timestamp).toDate();
         }
       } catch (e) {
         print('⚠️ Error parsing lastMessageTimestamp: $e');
@@ -3524,7 +3534,8 @@ class ChatController extends GetxController {
       print('   - ID: $docId');
       print('   - Name: $name');
       print('   - Is Group: $isGroup');
-      print('   - Group Image: ${groupImage.isNotEmpty ? "Set (${_getImageType(groupImage)})" : "None"}');
+      print(
+          '   - Group Image: ${groupImage.isNotEmpty ? "Set (${_getImageType(groupImage)})" : "None"}');
       print('   - Participants: ${participants.length}');
       print('   - Last Message: "$lastMessage"');
 
@@ -3547,16 +3558,13 @@ class ChatController extends GetxController {
 
       print('✅ Successfully created chat object with group image: $docId');
       return chat;
-
     } catch (e) {
-      print('❌ Error in _createChatFromFirestoreDataWithGroupImage for $docId: $e');
+      print(
+          '❌ Error in _createChatFromFirestoreDataWithGroupImage for $docId: $e');
       print('❌ Stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
-
-
-
 
   Map<String, dynamic> getChatDisplayInfoEnhanced(Chat chat) {
     return {
@@ -3565,8 +3573,8 @@ class ChatController extends GetxController {
       'unreadCount': chat.unreadCounts[_consistentUserId] ?? 0,
       'lastMessagePreview': chat.lastMessage.isNotEmpty
           ? chat.lastMessage.length > 50
-          ? '${chat.lastMessage.substring(0, 50)}...'
-          : chat.lastMessage
+              ? '${chat.lastMessage.substring(0, 50)}...'
+              : chat.lastMessage
           : 'No messages yet',
       'lastMessageTime': _formatLastMessageTime(chat.lastMessageTimestamp),
       'isOnline': _isParticipantOnline(chat),
@@ -3589,10 +3597,10 @@ class ChatController extends GetxController {
             groupImage.startsWith('local:'));
   }
 
-
   Future<void> initializeWithGroupImageSupport() async {
     try {
-      print('🚀 Initializing ChatController with enhanced group image support...');
+      print(
+          '🚀 Initializing ChatController with enhanced group image support...');
 
       // Step 1: Basic initialization
       await _safeInitializeFirebase();
@@ -3609,13 +3617,14 @@ class ChatController extends GetxController {
       // Step 5: Mark initialization as complete
       markInitialSetupComplete();
 
-      print('✅ ChatController initialization with group image support completed');
-
+      print(
+          '✅ ChatController initialization with group image support completed');
     } catch (e) {
       print('❌ Error initializing ChatController with group image support: $e');
       _handleOfflineMode();
     }
   }
+
   /// Update your _loadChats method to use the enhanced chat creation
   Future<void> _loadChatsWithGroupImageSupport() async {
     print('📱 Loading chats with group image support...');
@@ -3638,7 +3647,7 @@ class ChatController extends GetxController {
           .where('participants', arrayContains: _consistentUserId!)
           .snapshots()
           .listen(
-            (snapshot) {
+        (snapshot) {
           print('📨 Real-time update: ${snapshot.docs.length} chats');
 
           final chats = <Chat>[];
@@ -3646,7 +3655,8 @@ class ChatController extends GetxController {
             try {
               final data = doc.data();
               // Use enhanced method that handles group images properly
-              final chat = _createChatFromFirestoreDataWithGroupImage(doc.id, data);
+              final chat =
+                  _createChatFromFirestoreDataWithGroupImage(doc.id, data);
               chats.add(chat);
             } catch (e) {
               print('❌ Error parsing real-time chat ${doc.id}: $e');
@@ -3660,7 +3670,6 @@ class ChatController extends GetxController {
           connectionStatus.value = 'Connected (Local)';
         },
       );
-
     } catch (e) {
       print('❌ Error in _loadChatsWithGroupImageSupport: $e');
       _processChatData([]);
@@ -3669,7 +3678,6 @@ class ChatController extends GetxController {
       connectionStatus.value = 'Connected';
     }
   }
-
 
   Future<void> _loadChatsEnhanced() async {
     print('📱 Loading chats with enhanced participant management...');
@@ -3692,7 +3700,7 @@ class ChatController extends GetxController {
           .where('participants', arrayContains: _consistentUserId!)
           .snapshots()
           .listen(
-            (snapshot) {
+        (snapshot) {
           print('📨 Real-time update: ${snapshot.docs.length} chats');
 
           final chats = <Chat>[];
@@ -3707,7 +3715,6 @@ class ChatController extends GetxController {
               } else {
                 print('⚠️ Invalid chat data for ${doc.id}');
               }
-
             } catch (e) {
               print('❌ Error parsing real-time chat ${doc.id}: $e');
             }
@@ -3720,10 +3727,8 @@ class ChatController extends GetxController {
           connectionStatus.value = 'Connected (Local)';
 
           _loadChatsEnhanced();
-
         },
       );
-
     } catch (e) {
       print('❌ Error in _loadChatsEnhanced: $e');
       _processChatData([]);
@@ -3753,7 +3758,6 @@ class ChatController extends GetxController {
       }
 
       return true;
-
     } catch (e) {
       print('❌ Error validating chat data: $e');
       return false;
@@ -3761,7 +3765,8 @@ class ChatController extends GetxController {
   }
 
   // FIXED: Enhanced group image sync
-  Future<void> syncGroupImageFromGroupController(String chatId, String imageData) async {
+  Future<void> syncGroupImageFromGroupController(
+      String chatId, String imageData) async {
     try {
       print('🔄 Syncing group image from GroupController...');
       print('   Chat ID: $chatId');
@@ -3785,13 +3790,10 @@ class ChatController extends GetxController {
       });
 
       print('✅ Group image synced from GroupController');
-
     } catch (e) {
       print('❌ Error syncing group image from GroupController: $e');
     }
   }
-
-
 
   Future<void> refreshGroupImageFromController(String chatId) async {
     try {
@@ -3812,13 +3814,10 @@ class ChatController extends GetxController {
           print('✅ Refreshed group image from Firestore');
         }
       }
-
     } catch (e) {
       print('❌ Error refreshing group image: $e');
     }
   }
-
-
 
   /// Create group with image support (base64 or file path)
   Future<String?> createGroupWithImage({
@@ -3889,11 +3888,11 @@ class ChatController extends GetxController {
         },
       };
 
-      print('📝 Creating group document with image data: ${groupImageData.isNotEmpty ? "Yes" : "No"}');
+      print(
+          '📝 Creating group document with image data: ${groupImageData.isNotEmpty ? "Yes" : "No"}');
 
-      final docRef = await FirebaseFirestore.instance
-          .collection('chats')
-          .add(groupData);
+      final docRef =
+          await FirebaseFirestore.instance.collection('chats').add(groupData);
 
       print('✅ Group created successfully: ${docRef.id}');
 
@@ -3905,7 +3904,6 @@ class ChatController extends GetxController {
       }
 
       return docRef.id;
-
     } catch (e) {
       print('❌ Error creating group with image: $e');
       if (!_silentMode) {
@@ -3940,7 +3938,8 @@ class ChatController extends GetxController {
         final Uint8List imageBytes = await imageFile.readAsBytes();
 
         // Check file size (Firestore has 1MB document limit)
-        if (imageBytes.length > 800000) { // ~800KB limit
+        if (imageBytes.length > 800000) {
+          // ~800KB limit
           throw Exception('Image too large. Please choose a smaller image.');
         }
 
@@ -3972,9 +3971,12 @@ class ChatController extends GetxController {
       }
     } catch (e) {
       print('❌ Error sending base64 image: $e');
-      Get.snackbar('Error', e.toString(),
+      Get.snackbar(
+        'Error',
+        e.toString(),
         backgroundColor: Colors.red,
-        colorText: Colors.white,);
+        colorText: Colors.white,
+      );
     } finally {
       isSendingMessage.value = false;
     }
@@ -4018,7 +4020,9 @@ class ChatController extends GetxController {
       }
     } catch (e) {
       print('❌ Error sending ImgBB image: $e');
-      Get.snackbar('Error', 'Failed to upload image: ${e.toString()}',
+      Get.snackbar(
+        'Error',
+        'Failed to upload image: ${e.toString()}',
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -4030,7 +4034,8 @@ class ChatController extends GetxController {
 // ImgBB upload helper
   Future<String> _uploadToImgBB(File imageFile) async {
     try {
-      const String apiKey = 'YOUR_IMGBB_API_KEY'; // Get free API key from imgbb.com
+      const String apiKey =
+          'YOUR_IMGBB_API_KEY'; // Get free API key from imgbb.com
       const String uploadUrl = 'https://api.imgbb.com/1/upload';
 
       final bytes = await imageFile.readAsBytes();
@@ -4093,9 +4098,12 @@ class ChatController extends GetxController {
       }
     } catch (e) {
       print('❌ Error sending Cloudinary image: $e');
-      Get.snackbar('Error', 'Failed to upload image',
+      Get.snackbar(
+        'Error',
+        'Failed to upload image',
         backgroundColor: Colors.red,
-        colorText: Colors.white,);
+        colorText: Colors.white,
+      );
     } finally {
       isSendingMessage.value = false;
     }
@@ -4106,11 +4114,13 @@ class ChatController extends GetxController {
     try {
       const String cloudName = 'YOUR_CLOUD_NAME';
       const String uploadPreset = 'YOUR_UPLOAD_PRESET';
-      const String uploadUrl = 'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
+      const String uploadUrl =
+          'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
 
       final request = http.MultipartRequest('POST', Uri.parse(uploadUrl));
       request.fields['upload_preset'] = uploadPreset;
-      request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+      request.files
+          .add(await http.MultipartFile.fromPath('file', imageFile.path));
 
       final response = await request.send();
 
@@ -4143,7 +4153,8 @@ class ChatController extends GetxController {
 
         // Save to app's documents directory
         final Directory appDir = await getApplicationDocumentsDirectory();
-        final String fileName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final String fileName =
+            'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
         final String localPath = '${appDir.path}/chat_images/$fileName';
 
         // Create directory if it doesn't exist
@@ -4234,7 +4245,8 @@ class ChatController extends GetxController {
       }
 
       // Add the image file
-      request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+      request.files
+          .add(await http.MultipartFile.fromPath('image', imageFile.path));
 
       final response = await request.send();
 
@@ -4250,9 +4262,6 @@ class ChatController extends GetxController {
       throw Exception('Upload failed: $e');
     }
   }
-
-
-
 
   // Migrate individual chat document
   Future<void> _migrateChatDocument(QueryDocumentSnapshot doc) async {
@@ -4274,7 +4283,8 @@ class ChatController extends GetxController {
 
       // Update participant details if needed
       Map<String, dynamic>? participantDetails = chatData['participantDetails'];
-      if (participantDetails != null && participantDetails.containsKey(userEmail)) {
+      if (participantDetails != null &&
+          participantDetails.containsKey(userEmail)) {
         final userDetails = participantDetails[userEmail];
         participantDetails.remove(userEmail);
         participantDetails[_consistentUserId!] = userDetails;
@@ -4293,14 +4303,14 @@ class ChatController extends GetxController {
       if (needsUpdate) {
         await doc.reference.update({
           'participants': participants,
-          if (participantDetails != null) 'participantDetails': participantDetails,
+          if (participantDetails != null)
+            'participantDetails': participantDetails,
           if (unreadCounts != null) 'unreadCounts': unreadCounts,
           'migratedAt': FieldValue.serverTimestamp(),
         });
 
         print('✅ Migrated chat: ${doc.id}');
       }
-
     } catch (e) {
       print('❌ Error migrating chat ${doc.id}: $e');
     }
@@ -4326,7 +4336,9 @@ class ChatController extends GetxController {
 
   /// Get current user's full data (if needed)
   Map<String, dynamic>? get currentUserData {
-    return _currentUserData != null ? Map<String, dynamic>.from(_currentUserData!) : null;
+    return _currentUserData != null
+        ? Map<String, dynamic>.from(_currentUserData!)
+        : null;
   }
 
   /// Get current user's ID (ensure this exists)
@@ -4348,7 +4360,8 @@ class ChatController extends GetxController {
 
       final userName = _currentUserData!['full_name']?.toString() ?? 'User';
       final userEmail = _currentUserData!['email']?.toString() ?? '';
-      final userAvatar = _currentUserData!['profile_image']?.toString() ?? CustomImage.avator;
+      final userAvatar =
+          _currentUserData!['profile_image']?.toString() ?? CustomImage.avator;
 
       await FirebaseFirestore.instance
           .collection('users')
@@ -4378,7 +4391,7 @@ class ChatController extends GetxController {
 
       _authStateSubscription?.cancel();
       _authStateSubscription = FirebaseAuth.instance.authStateChanges().listen(
-            (User? user) {
+        (User? user) {
           print('🔍 Auth state changed: ${user?.uid ?? 'No user'}');
           _handleAuthStateChange(user);
         },
@@ -4390,7 +4403,6 @@ class ChatController extends GetxController {
           }
         },
       );
-
     } catch (e) {
       print('❌ Error setting up authentication listener: $e');
     }
@@ -4509,7 +4521,8 @@ class ChatController extends GetxController {
               .where('participants', arrayContains: possibleUserId)
               .get();
 
-          print('📨 Found ${snapshot.docs.length} chats for user ID: $possibleUserId');
+          print(
+              '📨 Found ${snapshot.docs.length} chats for user ID: $possibleUserId');
 
           for (var doc in snapshot.docs) {
             // Avoid duplicates
@@ -4520,20 +4533,25 @@ class ChatController extends GetxController {
 
             try {
               final data = doc.data();
-              print('📄 Processing chat: ${doc.id} - ${data['name'] ?? 'Personal Chat'}');
+              print(
+                  '📄 Processing chat: ${doc.id} - ${data['name'] ?? 'Personal Chat'}');
 
               // Migrate the chat if needed
-              bool migrated = await _migrateChatIfNeeded(doc.id, data, possibleUserId);
+              bool migrated =
+                  await _migrateChatIfNeeded(doc.id, data, possibleUserId);
 
               // Get fresh data if migrated
-              final chatData = migrated ?
-              (await FirebaseFirestore.instance.collection('chats').doc(doc.id).get()).data()! :
-              data;
+              final chatData = migrated
+                  ? (await FirebaseFirestore.instance
+                          .collection('chats')
+                          .doc(doc.id)
+                          .get())
+                      .data()!
+                  : data;
 
               final chat = _createChatFromFirestoreData(doc.id, chatData);
               allChats.add(chat);
               print('✅ Successfully processed chat: ${doc.id}');
-
             } catch (e) {
               print('❌ Error parsing chat ${doc.id}: $e');
             }
@@ -4550,7 +4568,6 @@ class ChatController extends GetxController {
 
       // Set up real-time listener for the primary user ID
       await _setupRealTimeListener();
-
     } catch (e) {
       print('❌ Error in _loadChats: $e');
       _processChatData([]);
@@ -4561,15 +4578,18 @@ class ChatController extends GetxController {
   }
 
 // Enhanced migration method
-  Future<bool> _migrateChatIfNeeded(String chatId, Map<String, dynamic> chatData, String foundUserId) async {
+  Future<bool> _migrateChatIfNeeded(
+      String chatId, Map<String, dynamic> chatData, String foundUserId) async {
     try {
       // Check if this chat needs migration
       final participants = List<String>.from(chatData['participants'] ?? []);
 
       // If the chat was found with a different user ID than our current consistent ID,
       // we need to migrate it
-      if (foundUserId != _consistentUserId && participants.contains(foundUserId)) {
-        print('🔄 Migrating chat $chatId from $foundUserId to $_consistentUserId');
+      if (foundUserId != _consistentUserId &&
+          participants.contains(foundUserId)) {
+        print(
+            '🔄 Migrating chat $chatId from $foundUserId to $_consistentUserId');
 
         bool needsUpdate = false;
 
@@ -4583,8 +4603,10 @@ class ChatController extends GetxController {
         }
 
         // Update participant details
-        Map<String, dynamic>? participantDetails = chatData['participantDetails'];
-        if (participantDetails != null && participantDetails.containsKey(foundUserId)) {
+        Map<String, dynamic>? participantDetails =
+            chatData['participantDetails'];
+        if (participantDetails != null &&
+            participantDetails.containsKey(foundUserId)) {
           final userDetails = participantDetails[foundUserId];
           participantDetails.remove(foundUserId);
           participantDetails[_consistentUserId!] = userDetails;
@@ -4606,7 +4628,8 @@ class ChatController extends GetxController {
               .doc(chatId)
               .update({
             'participants': participants,
-            if (participantDetails != null) 'participantDetails': participantDetails,
+            if (participantDetails != null)
+              'participantDetails': participantDetails,
             if (unreadCounts != null) 'unreadCounts': unreadCounts,
             'migratedAt': FieldValue.serverTimestamp(),
             'migratedFrom': foundUserId,
@@ -4635,7 +4658,7 @@ class ChatController extends GetxController {
           .where('participants', arrayContains: _consistentUserId!)
           .snapshots()
           .listen(
-            (snapshot) {
+        (snapshot) {
           print('📨 Real-time update: ${snapshot.docs.length} chats');
 
           final chats = <Chat>[];
@@ -4656,7 +4679,6 @@ class ChatController extends GetxController {
           connectionStatus.value = 'Connected (Local)';
         },
       );
-
     } catch (e) {
       print('❌ Error setting up real-time listener: $e');
     }
@@ -4695,13 +4717,15 @@ class ChatController extends GetxController {
             .where('participants', arrayContains: searchTerm)
             .get();
 
-        print('🔍 Search term "$searchTerm": ${snapshot.docs.length} chats found');
+        print(
+            '🔍 Search term "$searchTerm": ${snapshot.docs.length} chats found');
 
         for (var doc in snapshot.docs.take(3)) {
           final data = doc.data();
           final participants = data['participants'] ?? [];
           final lastMessage = data['lastMessage'] ?? '';
-          print('   - Chat ${doc.id}: participants=$participants, lastMsg="$lastMessage"');
+          print(
+              '   - Chat ${doc.id}: participants=$participants, lastMsg="$lastMessage"');
         }
       } catch (e) {
         print('❌ Error searching with "$searchTerm": $e');
@@ -4710,10 +4734,8 @@ class ChatController extends GetxController {
 
     // Also search without arrayContains to see all chats
     try {
-      final allChats = await FirebaseFirestore.instance
-          .collection('chats')
-          .limit(10)
-          .get();
+      final allChats =
+          await FirebaseFirestore.instance.collection('chats').limit(10).get();
 
       print('📊 Total recent chats in database: ${allChats.docs.length}');
       for (var doc in allChats.docs) {
@@ -4740,16 +4762,13 @@ class ChatController extends GetxController {
     refreshChatListUI();
   }
 
-
-
-
-
   List<Chat> get currentChatList {
     List<Chat> sourceList;
 
     if (selectedTabIndex.value == 0) {
       // Personal chats tab
-      sourceList = searchQuery.value.isEmpty ? personalChats : filteredPersonalChats;
+      sourceList =
+          searchQuery.value.isEmpty ? personalChats : filteredPersonalChats;
     } else {
       // Group chats tab
       sourceList = searchQuery.value.isEmpty ? groupChats : filteredGroupChats;
@@ -4757,14 +4776,11 @@ class ChatController extends GetxController {
 
     // Always sort by last message timestamp (newest first)
     final sortedList = List<Chat>.from(sourceList);
-    sortedList.sort((a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
+    sortedList.sort(
+        (a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
 
     return sortedList;
   }
-
-
-
-
 
   // NEW: Ensure existing chat appears in local list
   Future<void> _ensureChatInLocalList(String chatId) async {
@@ -4806,7 +4822,8 @@ class ChatController extends GetxController {
   }
 
   // NEW: Add new chat to local list immediately
-  Future<void> _addNewChatToLocalList(String chatId, Map<String, dynamic> chatData, String displayName) async {
+  Future<void> _addNewChatToLocalList(
+      String chatId, Map<String, dynamic> chatData, String displayName) async {
     try {
       // Create chat object from the data we just created
       final chat = Chat(
@@ -4820,7 +4837,9 @@ class ChatController extends GetxController {
         lastMessage: chatData['lastMessage'] ?? '',
         lastMessageTimestamp: DateTime.now(),
         lastMessageSender: chatData['lastMessageSender'] ?? '',
-        participantDetails: (chatData['participantDetails'] as Map<String, dynamic>).map((key, value) {
+        participantDetails:
+            (chatData['participantDetails'] as Map<String, dynamic>)
+                .map((key, value) {
           final data = value as Map<String, dynamic>;
           return MapEntry(
             key,
@@ -4833,9 +4852,8 @@ class ChatController extends GetxController {
           );
         }),
         unreadCounts: Map<String, int>.from(
-            (chatData['unreadCounts'] as Map<String, dynamic>).map((key, value) =>
-                MapEntry(key, value as int? ?? 0))
-        ),
+            (chatData['unreadCounts'] as Map<String, dynamic>)
+                .map((key, value) => MapEntry(key, value as int? ?? 0))),
       );
 
       // Add to appropriate list
@@ -4877,21 +4895,24 @@ class ChatController extends GetxController {
 
   List<Chat> get recentChats {
     final allChats = [...personalChats, ...groupChats];
-    allChats.sort((a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
+    allChats.sort(
+        (a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
     return allChats;
   }
 
   // Method to get recent personal chats
   List<Chat> get recentPersonalChats {
     final chats = List<Chat>.from(personalChats);
-    chats.sort((a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
+    chats.sort(
+        (a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
     return chats;
   }
 
   // Method to get recent group chats
   List<Chat> get recentGroupChats {
     final chats = List<Chat>.from(groupChats);
-    chats.sort((a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
+    chats.sort(
+        (a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
     return chats;
   }
 
@@ -4904,11 +4925,13 @@ class ChatController extends GetxController {
 
     // Debug: Print all chats before processing
     for (var chat in chats) {
-      print('🔍 Chat ${chat.id}: isGroup=${chat.isGroup}, participants=${chat.participants}');
+      print(
+          '🔍 Chat ${chat.id}: isGroup=${chat.isGroup}, participants=${chat.participants}');
     }
 
     // Sort chats by last message timestamp (newest first)
-    chats.sort((a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
+    chats.sort(
+        (a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
 
     final personalChatsList = chats.where((chat) => !chat.isGroup).toList();
     final groupChatsList = chats.where((chat) => chat.isGroup).toList();
@@ -4927,7 +4950,8 @@ class ChatController extends GetxController {
 
     // Debug: Print details of each group chat
     for (var chat in groupChatsList) {
-      print('👥 Group chat: ${chat.id} - ${chat.name} (${chat.participants.length} members)');
+      print(
+          '👥 Group chat: ${chat.id} - ${chat.name} (${chat.participants.length} members)');
       print('   - Last message: "${chat.lastMessage}"');
       print('   - Participants: ${chat.participants}');
     }
@@ -4950,7 +4974,8 @@ class ChatController extends GetxController {
     refreshChatListUI();
 
     print('✅ Chat processing completed - UI should show updated chats');
-    print('✅ Final count - Personal: ${personalChats.length}, Groups: ${groupChats.length}');
+    print(
+        '✅ Final count - Personal: ${personalChats.length}, Groups: ${groupChats.length}');
   }
 
 // FIXED: Enhanced createPersonalChat method with consistent user ID handling
@@ -4966,7 +4991,8 @@ class ChatController extends GetxController {
       isCreatingChat.value = true;
       isSendingMessage.value = true;
 
-      print('💬 Creating personal chat with API user: $userName (API ID: $apiUserId)');
+      print(
+          '💬 Creating personal chat with API user: $userName (API ID: $apiUserId)');
       print('👤 Current user consistent ID: $_consistentUserId');
 
       // CRITICAL: Convert API user ID to consistent format
@@ -4989,19 +5015,21 @@ class ChatController extends GetxController {
             .get();
 
         for (var doc in existingChatQuery.docs) {
-          final docParticipants = List<String>.from(doc.data()['participants'] ?? []);
-          print('📝 Checking existing chat ${doc.id} with participants: $docParticipants');
+          final docParticipants =
+              List<String>.from(doc.data()['participants'] ?? []);
+          print(
+              '📝 Checking existing chat ${doc.id} with participants: $docParticipants');
 
           // Check if this chat contains both users (in any format)
           if (docParticipants.contains(_consistentUserId!) &&
               (docParticipants.contains(otherUserConsistentId) ||
                   docParticipants.contains(apiUserId))) {
-
             existingChatId = doc.id;
             print('✅ Found existing chat: $existingChatId');
 
             // CRITICAL: Migrate chat to use consistent IDs if needed
-            await _migrateChatToConsistentIds(doc.id, docParticipants, otherUserConsistentId, apiUserId);
+            await _migrateChatToConsistentIds(
+                doc.id, docParticipants, otherUserConsistentId, apiUserId);
             break;
           }
         }
@@ -5022,7 +5050,10 @@ class ChatController extends GetxController {
 
       // Create new chat with CONSISTENT participant IDs
       final chatData = {
-        'participants': [_consistentUserId!, otherUserConsistentId], // Both consistent
+        'participants': [
+          _consistentUserId!,
+          otherUserConsistentId
+        ], // Both consistent
         'isGroup': false,
         'createdAt': FieldValue.serverTimestamp(),
         'lastMessage': 'Chat created',
@@ -5054,16 +5085,17 @@ class ChatController extends GetxController {
         }
       };
 
-      print('📝 Creating chat document with consistent participants: ${chatData['participants']}');
+      print(
+          '📝 Creating chat document with consistent participants: ${chatData['participants']}');
 
-      final docRef = await FirebaseFirestore.instance
-          .collection('chats')
-          .add(chatData);
+      final docRef =
+          await FirebaseFirestore.instance.collection('chats').add(chatData);
 
       print('✅ Personal chat created successfully: ${docRef.id}');
 
       // CRITICAL: Create user document for API user in Firebase
-      await _ensureApiUserDocumentExists(apiUserId, otherUserConsistentId, userName);
+      await _ensureApiUserDocumentExists(
+          apiUserId, otherUserConsistentId, userName);
 
       // CRITICAL: Immediately add to local list with proper data
       await _addNewChatToLocalListImmediate(docRef.id, chatData);
@@ -5081,7 +5113,6 @@ class ChatController extends GetxController {
       }
 
       return docRef.id;
-
     } catch (e) {
       print('❌ Error creating personal chat: $e');
       print('❌ Stack trace: ${StackTrace.current}');
@@ -5098,8 +5129,11 @@ class ChatController extends GetxController {
   }
 
 // NEW: Migrate existing chat to consistent IDs
-  Future<void> _migrateChatToConsistentIds(String chatId, List<String> currentParticipants,
-      String consistentId, String apiId) async {
+  Future<void> _migrateChatToConsistentIds(
+      String chatId,
+      List<String> currentParticipants,
+      String consistentId,
+      String apiId) async {
     try {
       print('🔄 Migrating chat $chatId to consistent IDs');
 
@@ -5108,7 +5142,8 @@ class ChatController extends GetxController {
 
       // Replace API ID with consistent ID if needed
       for (int i = 0; i < updatedParticipants.length; i++) {
-        if (updatedParticipants[i] == apiId && !updatedParticipants.contains(consistentId)) {
+        if (updatedParticipants[i] == apiId &&
+            !updatedParticipants.contains(consistentId)) {
           updatedParticipants[i] = consistentId;
           needsUpdate = true;
           print('🔄 Replaced $apiId with $consistentId');
@@ -5117,21 +5152,24 @@ class ChatController extends GetxController {
       }
 
       if (needsUpdate) {
-        await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
+        await FirebaseFirestore.instance
+            .collection('chats')
+            .doc(chatId)
+            .update({
           'participants': updatedParticipants,
           'migratedAt': FieldValue.serverTimestamp(),
           'apiUserMapping.$consistentId': apiId,
         });
         print('✅ Chat migrated to consistent IDs');
       }
-
     } catch (e) {
       print('❌ Error migrating chat: $e');
     }
   }
 
 // NEW: Ensure API user document exists in Firebase
-  Future<void> _ensureApiUserDocumentExists(String apiUserId, String consistentId, String userName) async {
+  Future<void> _ensureApiUserDocumentExists(
+      String apiUserId, String consistentId, String userName) async {
     try {
       print('📝 Ensuring API user document exists: $userName ($consistentId)');
 
@@ -5156,7 +5194,8 @@ class ChatController extends GetxController {
   }
 
 // 3. New method to ensure existing chat is in local list
-  Future<void> _ensureExistingChatInLocalList(String chatId, Map<String, dynamic> chatData) async {
+  Future<void> _ensureExistingChatInLocalList(
+      String chatId, Map<String, dynamic> chatData) async {
     try {
       // Check if chat already exists in local lists
       final existsInPersonal = personalChats.any((chat) => chat.id == chatId);
@@ -5188,7 +5227,8 @@ class ChatController extends GetxController {
   }
 
 // 4. Enhanced method to add new chat to local list immediately
-  Future<void> _addNewChatToLocalListImmediate(String chatId, Map<String, dynamic> chatData) async {
+  Future<void> _addNewChatToLocalListImmediate(
+      String chatId, Map<String, dynamic> chatData) async {
     try {
       print('➕ Adding new chat to local list immediately: $chatId');
 
@@ -5204,7 +5244,9 @@ class ChatController extends GetxController {
         lastMessage: chatData['lastMessage'] ?? 'Chat created',
         lastMessageTimestamp: DateTime.now(),
         lastMessageSender: chatData['lastMessageSender'] ?? 'system',
-        participantDetails: (chatData['participantDetails'] as Map<String, dynamic>).map((key, value) {
+        participantDetails:
+            (chatData['participantDetails'] as Map<String, dynamic>)
+                .map((key, value) {
           final data = value as Map<String, dynamic>;
           return MapEntry(
             key,
@@ -5217,9 +5259,8 @@ class ChatController extends GetxController {
           );
         }),
         unreadCounts: Map<String, int>.from(
-            (chatData['unreadCounts'] as Map<String, dynamic>).map((key, value) =>
-                MapEntry(key, value as int? ?? 0))
-        ),
+            (chatData['unreadCounts'] as Map<String, dynamic>)
+                .map((key, value) => MapEntry(key, value as int? ?? 0))),
       );
 
       print('📝 Created chat object: ${chat.id}, isGroup: ${chat.isGroup}');
@@ -5228,11 +5269,13 @@ class ChatController extends GetxController {
       if (chat.isGroup) {
         groupChats.insert(0, chat);
         groupChats.refresh();
-        print('✅ Added new group chat to local list: ${groupChats.length} total');
+        print(
+            '✅ Added new group chat to local list: ${groupChats.length} total');
       } else {
         personalChats.insert(0, chat);
         personalChats.refresh();
-        print('✅ Added new personal chat to local list: ${personalChats.length} total');
+        print(
+            '✅ Added new personal chat to local list: ${personalChats.length} total');
       }
 
       // Update filtered lists
@@ -5278,10 +5321,8 @@ class ChatController extends GetxController {
     // Search Firestore for ANY chats containing any of these IDs
     try {
       // First, get ALL chats to see what exists
-      final allChatsSnapshot = await FirebaseFirestore.instance
-          .collection('chats')
-          .limit(50)
-          .get();
+      final allChatsSnapshot =
+          await FirebaseFirestore.instance.collection('chats').limit(50).get();
 
       print('📊 Total chats in database: ${allChatsSnapshot.docs.length}');
 
@@ -5297,7 +5338,8 @@ class ChatController extends GetxController {
         print('   - Last Message: "$lastMessage"');
 
         // Check if any of our possible IDs are in participants
-        final matchingIds = participants.where((p) => allPossibleIds.contains(p)).toList();
+        final matchingIds =
+            participants.where((p) => allPossibleIds.contains(p)).toList();
         if (matchingIds.isNotEmpty) {
           print('   ✅ MATCH FOUND! Our IDs in this chat: $matchingIds');
         }
@@ -5315,13 +5357,13 @@ class ChatController extends GetxController {
 
           for (var doc in snapshot.docs) {
             final data = doc.data();
-            print('   - ${doc.id}: ${data['name'] ?? 'Personal Chat'} (${data['participants']})');
+            print(
+                '   - ${doc.id}: ${data['name'] ?? 'Personal Chat'} (${data['participants']})');
           }
         } catch (e) {
           print('❌ Error searching for ID "$possibleId": $e');
         }
       }
-
     } catch (e) {
       print('❌ Error in complete debug: $e');
     }
@@ -5369,7 +5411,8 @@ class ChatController extends GetxController {
               .where('participants', arrayContains: oldFormat)
               .get();
 
-          print('📨 Found ${snapshot.docs.length} chats with old format: $oldFormat');
+          print(
+              '📨 Found ${snapshot.docs.length} chats with old format: $oldFormat');
 
           for (var doc in snapshot.docs) {
             if (migratedChatIds.contains(doc.id)) {
@@ -5380,7 +5423,8 @@ class ChatController extends GetxController {
             final data = doc.data();
             final participants = List<String>.from(data['participants']);
 
-            print('🔄 Migrating chat ${doc.id} from $oldFormat to $currentConsistentId');
+            print(
+                '🔄 Migrating chat ${doc.id} from $oldFormat to $currentConsistentId');
 
             // Replace old format with new format
             bool updated = false;
@@ -5394,8 +5438,10 @@ class ChatController extends GetxController {
 
             if (updated) {
               // Update participant details
-              Map<String, dynamic>? participantDetails = data['participantDetails'];
-              if (participantDetails != null && participantDetails.containsKey(oldFormat)) {
+              Map<String, dynamic>? participantDetails =
+                  data['participantDetails'];
+              if (participantDetails != null &&
+                  participantDetails.containsKey(oldFormat)) {
                 final userDetails = participantDetails[oldFormat];
                 participantDetails.remove(oldFormat);
                 participantDetails[currentConsistentId] = userDetails;
@@ -5412,7 +5458,8 @@ class ChatController extends GetxController {
               // Perform the update
               await doc.reference.update({
                 'participants': participants,
-                if (participantDetails != null) 'participantDetails': participantDetails,
+                if (participantDetails != null)
+                  'participantDetails': participantDetails,
                 if (unreadCounts != null) 'unreadCounts': unreadCounts,
                 'migratedAt': FieldValue.serverTimestamp(),
                 'migratedFrom': oldFormat,
@@ -5432,7 +5479,6 @@ class ChatController extends GetxController {
 
       // Now reload chats
       await _loadChats();
-
     } catch (e) {
       print('❌ Error in force migration: $e');
     }
@@ -5484,7 +5530,8 @@ class ChatController extends GetxController {
               .where('participants', arrayContains: possibleUserId)
               .get();
 
-          print('📨 Found ${snapshot.docs.length} chats for ID: $possibleUserId');
+          print(
+              '📨 Found ${snapshot.docs.length} chats for ID: $possibleUserId');
 
           for (var doc in snapshot.docs) {
             if (foundChatIds.contains(doc.id)) {
@@ -5500,18 +5547,22 @@ class ChatController extends GetxController {
               print('   - Last Message: "${data['lastMessage']}"');
 
               // Always migrate to consistent ID before processing
-              bool migrated = await _migrateChatIfNeeded(doc.id, data, possibleUserId);
+              bool migrated =
+                  await _migrateChatIfNeeded(doc.id, data, possibleUserId);
 
               // Get fresh data if migrated
-              final chatData = migrated ?
-              (await FirebaseFirestore.instance.collection('chats').doc(doc.id).get()).data()! :
-              data;
+              final chatData = migrated
+                  ? (await FirebaseFirestore.instance
+                          .collection('chats')
+                          .doc(doc.id)
+                          .get())
+                      .data()!
+                  : data;
 
               final chat = _createChatFromFirestoreData(doc.id, chatData);
               allChats.add(chat);
 
               print('✅ Added chat to list: ${doc.id}');
-
             } catch (e) {
               print('❌ Error processing chat ${doc.id}: $e');
             }
@@ -5528,7 +5579,6 @@ class ChatController extends GetxController {
 
       // Set up real-time listener with primary ID
       await _setupRealTimeListener();
-
     } catch (e) {
       print('❌ Error in comprehensive chat loading: $e');
       _processChatData([]);
@@ -5537,7 +5587,6 @@ class ChatController extends GetxController {
       connectionStatus.value = 'Connected';
     }
   }
-
 
   Future<void> nuclearResetAndReload() async {
     print('💥 =================== NUCLEAR RESET ===================');
@@ -5575,7 +5624,6 @@ class ChatController extends GetxController {
       refreshChatListUI();
 
       print('💥 NUCLEAR RESET COMPLETED');
-
     } catch (e) {
       print('❌ Error in nuclear reset: $e');
     } finally {
@@ -5618,7 +5666,6 @@ class ChatController extends GetxController {
     print('=== END CONTROLLER DEBUG ===');
   }
 
-
   Map<String, dynamic> getChatDisplayInfo(Chat chat) {
     return {
       'displayName': chat.getDisplayName(_consistentUserId),
@@ -5626,8 +5673,8 @@ class ChatController extends GetxController {
       'unreadCount': chat.unreadCounts[_consistentUserId] ?? 0,
       'lastMessagePreview': chat.lastMessage.isNotEmpty
           ? chat.lastMessage.length > 50
-          ? '${chat.lastMessage.substring(0, 50)}...'
-          : chat.lastMessage
+              ? '${chat.lastMessage.substring(0, 50)}...'
+              : chat.lastMessage
           : 'No messages yet',
       'lastMessageTime': _formatLastMessageTime(chat.lastMessageTimestamp),
       'isOnline': _isParticipantOnline(chat),
@@ -5718,7 +5765,6 @@ class ChatController extends GetxController {
           final data = doc.data();
           final chat = _createChatFromFirestoreData(doc.id, data);
           chats.add(chat);
-
         } catch (e) {
           print('❌ Error processing chat ${doc.id} in force refresh: $e');
         }
@@ -5726,7 +5772,6 @@ class ChatController extends GetxController {
 
       print('✅ Force refresh processed ${chats.length} chats');
       _processChatData(chats);
-
     } catch (e) {
       print('❌ Error in force refresh: $e');
     }
@@ -5744,15 +5789,18 @@ class ChatController extends GetxController {
       print('👥 Participants: $participants');
 
       // Extract participant details safely
-      final participantDetailsRaw = data['participantDetails'] as Map<String, dynamic>? ?? {};
-      print('📝 Raw participant details: ${participantDetailsRaw.keys.toList()}');
+      final participantDetailsRaw =
+          data['participantDetails'] as Map<String, dynamic>? ?? {};
+      print(
+          '📝 Raw participant details: ${participantDetailsRaw.keys.toList()}');
 
       // Build participant details map with null safety
       Map<String, ParticipantInfo> participantDetails = {};
 
       for (String participantId in participants) {
         try {
-          final detailsRaw = participantDetailsRaw[participantId] as Map<String, dynamic>?;
+          final detailsRaw =
+              participantDetailsRaw[participantId] as Map<String, dynamic>?;
 
           if (detailsRaw != null) {
             participantDetails[participantId] = ParticipantInfo(
@@ -5771,7 +5819,8 @@ class ChatController extends GetxController {
             );
           }
 
-          print('✅ Created participant info for: ${participantDetails[participantId]?.name}');
+          print(
+              '✅ Created participant info for: ${participantDetails[participantId]?.name}');
         } catch (e) {
           print('❌ Error creating participant info for $participantId: $e');
           // Create minimal participant info
@@ -5785,11 +5834,13 @@ class ChatController extends GetxController {
       }
 
       // Extract unread counts safely
-      final unreadCountsRaw = data['unreadCounts'] as Map<String, dynamic>? ?? {};
+      final unreadCountsRaw =
+          data['unreadCounts'] as Map<String, dynamic>? ?? {};
       Map<String, int> unreadCounts = {};
 
       for (String participantId in participants) {
-        unreadCounts[participantId] = (unreadCountsRaw[participantId] as num?)?.toInt() ?? 0;
+        unreadCounts[participantId] =
+            (unreadCountsRaw[participantId] as num?)?.toInt() ?? 0;
       }
 
       // Extract timestamps safely
@@ -5806,7 +5857,8 @@ class ChatController extends GetxController {
 
       try {
         if (data['lastMessageTimestamp'] != null) {
-          lastMessageTimestamp = (data['lastMessageTimestamp'] as Timestamp).toDate();
+          lastMessageTimestamp =
+              (data['lastMessageTimestamp'] as Timestamp).toDate();
         }
       } catch (e) {
         print('⚠️ Error parsing lastMessageTimestamp: $e');
@@ -5844,15 +5896,12 @@ class ChatController extends GetxController {
 
       print('✅ Successfully created chat object: $docId');
       return chat;
-
     } catch (e) {
       print('❌ Error in _createChatFromFirestoreData for $docId: $e');
       print('❌ Stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
-
-
 
   RxString selectedGroupImagePath = ''.obs;
   final ImagePicker _groupImagePicker = ImagePicker();
@@ -5919,7 +5968,6 @@ class ChatController extends GetxController {
           chats.add(chat);
 
           print('✅ Successfully processed chat: ${doc.id}');
-
         } catch (e) {
           print('❌ Error processing chat ${doc.id}: $e');
           print('❌ Chat data: ${doc.data()}');
@@ -5937,16 +5985,17 @@ class ChatController extends GetxController {
               description: data['description']!.toString(),
               createdBy: data['createdBy']!.toString(),
               createdAt: DateTime.now(),
-              lastMessage: data['lastMessage']?.toString() ?? 'Error loading message',
+              lastMessage:
+                  data['lastMessage']?.toString() ?? 'Error loading message',
               lastMessageTimestamp: DateTime.now(),
               lastMessageSender: data['lastMessageSender']?.toString() ?? '',
-              participantDetails: _createMinimalParticipantDetails(participants),
+              participantDetails:
+                  _createMinimalParticipantDetails(participants),
               unreadCounts: _createMinimalUnreadCounts(participants),
             );
 
             chats.add(minimalChat);
             print('✅ Created minimal chat object for: ${doc.id}');
-
           } catch (e2) {
             print('❌ Failed to create even minimal chat for ${doc.id}: $e2');
             // Skip this chat entirely
@@ -5956,7 +6005,6 @@ class ChatController extends GetxController {
 
       print('✅ Force refresh processed ${chats.length} chats');
       _processChatData(chats);
-
     } catch (e) {
       print('❌ Error in force refresh with error handling: $e');
     }
@@ -5964,7 +6012,8 @@ class ChatController extends GetxController {
 
 // Helper methods for minimal chat creation:
 
-  Map<String, ParticipantInfo> _createMinimalParticipantDetails(List<String> participants) {
+  Map<String, ParticipantInfo> _createMinimalParticipantDetails(
+      List<String> participants) {
     Map<String, ParticipantInfo> details = {};
 
     for (String participantId in participants) {
@@ -6045,10 +6094,16 @@ class ChatController extends GetxController {
       String query = searchQuery.value.toLowerCase();
 
       filteredPersonalChats.value = personalChats
-          .where((chat) => chat.getDisplayName(_consistentUserId).toLowerCase().contains(query))
+          .where((chat) => chat
+              .getDisplayName(_consistentUserId)
+              .toLowerCase()
+              .contains(query))
           .toList();
       filteredGroupChats.value = groupChats
-          .where((chat) => chat.getDisplayName(_consistentUserId).toLowerCase().contains(query))
+          .where((chat) => chat
+              .getDisplayName(_consistentUserId)
+              .toLowerCase()
+              .contains(query))
           .toList();
     }
   }
@@ -6066,14 +6121,13 @@ class ChatController extends GetxController {
     isLoadingMessages.value = true;
 
     final chat = [...personalChats, ...groupChats].firstWhereOrNull(
-          (chat) => chat.id == chatId,
+      (chat) => chat.id == chatId,
     );
     currentChat.value = chat;
 
     try {
       // Load messages directly from Firestore
       _loadMessagesDirectly(chatId);
-
     } catch (e) {
       print('❌ Error in loadMessages: $e');
       isLoadingMessages.value = false;
@@ -6081,17 +6135,12 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   // Mark chat as read
   Future<void> _markAsRead(String chatId) async {
     try {
       if (_consistentUserId == null) return;
 
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .update({
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
         'unreadCounts.$_consistentUserId': 0,
       });
     } catch (e) {
@@ -6099,10 +6148,9 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   // NEW: Update local chat list immediately after sending a message
-  Future<void> _updateLocalChatAfterMessage(String chatId, String lastMessage) async {
+  Future<void> _updateLocalChatAfterMessage(
+      String chatId, String lastMessage) async {
     try {
       // Find the chat in personal or group chats
       Chat? targetChat;
@@ -6140,7 +6188,8 @@ class ChatController extends GetxController {
           createdBy: targetChat.createdBy,
           createdAt: targetChat.createdAt,
           lastMessage: lastMessage,
-          lastMessageTimestamp: DateTime.now(), // Use current time for immediate update
+          lastMessageTimestamp:
+              DateTime.now(), // Use current time for immediate update
           lastMessageSender: _consistentUserId!,
           participantDetails: targetChat.participantDetails,
           unreadCounts: targetChat.unreadCounts,
@@ -6173,12 +6222,7 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   bool get isFirebaseConnected => _firebaseService?.isConnected ?? false;
-
-
-
 
   void searchUsers(String query) async {
     if (query.isEmpty) {
@@ -6219,23 +6263,22 @@ class ChatController extends GetxController {
   }
 
   // Create static user document in Firestore
-  Future<void> _createStaticUserInFirestore(String userId, String userName) async {
+  Future<void> _createStaticUserInFirestore(
+      String userId, String userName) async {
     try {
       print('📝 Creating static user document in Firestore: $userName');
 
       final staticUserData = _getStaticUserData(userId);
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .set({
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
         'id': userId,
         'name': staticUserData['name'] ?? userName,
         'email': staticUserData['email'] ?? '$userId@lupuscare.com',
         'avatar': staticUserData['avatar'] ?? CustomImage.avator,
         'isOnline': staticUserData['isOnline'] ?? true,
         'specialty': staticUserData['specialty'] ?? 'Community Member',
-        'description': staticUserData['description'] ?? 'Lupus Care community member',
+        'description':
+            staticUserData['description'] ?? 'Lupus Care community member',
         'isStaticUser': true,
         'createdAt': FieldValue.serverTimestamp(),
         'lastSeen': FieldValue.serverTimestamp(),
@@ -6300,17 +6343,16 @@ class ChatController extends GetxController {
       },
     };
 
-    return staticPeople[userId] ?? {
-      'name': 'Community Member',
-      'email': '$userId@lupuscare.com',
-      'avatar': CustomImage.avator,
-      'isOnline': false,
-      'specialty': 'Community Member',
-      'description': 'Lupus Care community member',
-    };
+    return staticPeople[userId] ??
+        {
+          'name': 'Community Member',
+          'email': '$userId@lupuscare.com',
+          'avatar': CustomImage.avator,
+          'isOnline': false,
+          'specialty': 'Community Member',
+          'description': 'Lupus Care community member',
+        };
   }
-
-
 
 // 1. FIXED: Enhanced Group Creation Method in ChatController
   Future<void> createGroup() async {
@@ -6344,9 +6386,8 @@ class ChatController extends GetxController {
       final groupData = await _createGroupDocument(allParticipants);
 
       // Add group to Firestore
-      final docRef = await FirebaseFirestore.instance
-          .collection('chats')
-          .add(groupData);
+      final docRef =
+          await FirebaseFirestore.instance.collection('chats').add(groupData);
 
       print('✅ Group created successfully: ${docRef.id}');
 
@@ -6363,7 +6404,6 @@ class ChatController extends GetxController {
       if (!_silentMode) {
         _showSuccess('Group "${groupName.value}" created successfully!');
       }
-
     } catch (e) {
       print('❌ Error creating group: $e');
       if (!_silentMode) {
@@ -6396,14 +6436,16 @@ class ChatController extends GetxController {
       // Add selected members with API user ID format
       for (var member in selectedMembers) {
         final apiUserId = member.id; // This should be the API user ID
-        final consistentUserId = 'app_user_$apiUserId'; // Convert to consistent format
+        final consistentUserId =
+            'app_user_$apiUserId'; // Convert to consistent format
 
         participants.add({
           'userId': consistentUserId,
           'userData': {
             'id': consistentUserId,
             'name': member.name,
-            'avatar': member.avatar.isNotEmpty ? member.avatar : CustomImage.avator,
+            'avatar':
+                member.avatar.isNotEmpty ? member.avatar : CustomImage.avator,
             'isOnline': member.isOnline,
             'email': member.email,
             'originalApiId': apiUserId, // Store original API ID for reference
@@ -6411,7 +6453,8 @@ class ChatController extends GetxController {
           }
         });
 
-        print('👤 Added participant: ${member.name} (API: $apiUserId, Consistent: $consistentUserId)');
+        print(
+            '👤 Added participant: ${member.name} (API: $apiUserId, Consistent: $consistentUserId)');
       }
 
       return participants;
@@ -6422,9 +6465,11 @@ class ChatController extends GetxController {
   }
 
 // 3. CRITICAL: Create group document with comprehensive participant data
-  Future<Map<String, dynamic>> _createGroupDocument(List<Map<String, dynamic>> participants) async {
+  Future<Map<String, dynamic>> _createGroupDocument(
+      List<Map<String, dynamic>> participants) async {
     try {
-      final participantIds = participants.map((p) => p['userId'] as String).toList();
+      final participantIds =
+          participants.map((p) => p['userId'] as String).toList();
       final participantDetails = <String, dynamic>{};
       final unreadCounts = <String, dynamic>{};
 
@@ -6465,9 +6510,11 @@ class ChatController extends GetxController {
   }
 
 // 4. CRITICAL: Notify all participants about new group
-  Future<void> _notifyParticipantsAboutNewGroup(String groupId, List<Map<String, dynamic>> participants) async {
+  Future<void> _notifyParticipantsAboutNewGroup(
+      String groupId, List<Map<String, dynamic>> participants) async {
     try {
-      print('🔔 Notifying ${participants.length} participants about new group: $groupId');
+      print(
+          '🔔 Notifying ${participants.length} participants about new group: $groupId');
 
       // Create notification documents for each participant
       final batch = FirebaseFirestore.instance.batch();
@@ -6480,9 +6527,8 @@ class ChatController extends GetxController {
         if (userId == _consistentUserId!) continue;
 
         // Create a notification document
-        final notificationRef = FirebaseFirestore.instance
-            .collection('notifications')
-            .doc();
+        final notificationRef =
+            FirebaseFirestore.instance.collection('notifications').doc();
 
         batch.set(notificationRef, {
           'type': 'new_group',
@@ -6496,12 +6542,12 @@ class ChatController extends GetxController {
           'forceSync': true, // Force clients to sync
         });
 
-        print('🔔 Created notification for user: ${userData['name']} ($userId)');
+        print(
+            '🔔 Created notification for user: ${userData['name']} ($userId)');
       }
 
       await batch.commit();
       print('✅ All participants notified about new group');
-
     } catch (e) {
       print('❌ Error notifying participants: $e');
       // Don't throw error as group was created successfully
@@ -6537,7 +6583,8 @@ class ChatController extends GetxController {
         final lastSeen = _userLastSeen[userId];
 
         if (lastSeen != null) {
-          final minutesSinceLastSeen = DateTime.now().difference(lastSeen).inMinutes;
+          final minutesSinceLastSeen =
+              DateTime.now().difference(lastSeen).inMinutes;
 
           // Consider user offline if last seen > 3 minutes ago
           if (minutesSinceLastSeen > 3) {
@@ -6576,10 +6623,13 @@ class ChatController extends GetxController {
           if (lastSeenTimestamp != null || lastActivityTimestamp != null) {
             // Use the most recent timestamp
             final lastSeen = lastSeenTimestamp?.toDate() ?? DateTime.now();
-            final lastActivity = lastActivityTimestamp?.toDate() ?? DateTime.now();
-            final mostRecentActivity = lastActivity.isAfter(lastSeen) ? lastActivity : lastSeen;
+            final lastActivity =
+                lastActivityTimestamp?.toDate() ?? DateTime.now();
+            final mostRecentActivity =
+                lastActivity.isAfter(lastSeen) ? lastActivity : lastSeen;
 
-            final minutesSinceLastActivity = DateTime.now().difference(mostRecentActivity).inMinutes;
+            final minutesSinceLastActivity =
+                DateTime.now().difference(mostRecentActivity).inMinutes;
 
             // User is online if:
             // 1. They're marked as online in Firestore AND
@@ -6589,7 +6639,8 @@ class ChatController extends GetxController {
             _userOnlineStatus[userId] = isActuallyOnline;
             _userLastSeen[userId] = mostRecentActivity;
 
-            print('🔄 Updated online status for $userId: $isActuallyOnline (last activity: ${minutesSinceLastActivity}min ago)');
+            print(
+                '🔄 Updated online status for $userId: $isActuallyOnline (last activity: ${minutesSinceLastActivity}min ago)');
 
             // Refresh UI if this user is in current chat
             _refreshOnlineStatusUI();
@@ -6605,8 +6656,6 @@ class ChatController extends GetxController {
       }
     });
   }
-
-
 
   Future<String> _processGroupImage(String imagePath) async {
     try {
@@ -6633,7 +6682,8 @@ class ChatController extends GetxController {
 // 9. DEBUGGING: Method to check user ID consistency
   Future<void> debugUserIdConsistency() async {
     try {
-      print('🔍 =================== USER ID CONSISTENCY DEBUG ===================');
+      print(
+          '🔍 =================== USER ID CONSISTENCY DEBUG ===================');
 
       final userData = StorageService.to.getUser();
       print('👤 Raw user data: ${userData?.keys}');
@@ -6671,8 +6721,6 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   Future<Map<String, dynamic>> testApiHealth() async {
     try {
       print('🏥 Testing API health...');
@@ -6691,7 +6739,8 @@ class ChatController extends GetxController {
 
       // Test with a simple request
       final response = await http.post(
-        Uri.parse('https://alliedtechnologies.cloud/clients/lupus_care/api/v1/user.php'),
+        Uri.parse(
+            'https://alliedtechnologies.cloud/clients/lupus_care/api/v1/user.php'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -6718,7 +6767,6 @@ class ChatController extends GetxController {
           'status_code': response.statusCode,
         };
       }
-
     } catch (e) {
       return {
         'status': 'error',
@@ -6743,7 +6791,8 @@ class ChatController extends GetxController {
       }
 
       final response = await http.post(
-        Uri.parse('https://alliedtechnologies.cloud/clients/lupus_care/api/v1/user.php'),
+        Uri.parse(
+            'https://alliedtechnologies.cloud/clients/lupus_care/api/v1/user.php'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -6765,7 +6814,6 @@ class ChatController extends GetxController {
       } else {
         throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
-
     } catch (e) {
       print('❌ Minimal group creation error: $e');
       return {
@@ -6774,10 +6822,6 @@ class ChatController extends GetxController {
       };
     }
   }
-
-
-
-
 
 // Update the _getDefaultUserName method to handle API users:
   String _getDefaultUserName(String userId) {
@@ -6791,7 +6835,8 @@ class ChatController extends GetxController {
 // Update the _getDefaultUserAvatar method:
   String _getDefaultUserAvatar(String userId) {
     if (userId == _consistentUserId) {
-      return _currentUserData?['profile_image']?.toString() ?? CustomImage.avator;
+      return _currentUserData?['profile_image']?.toString() ??
+          CustomImage.avator;
     }
 
     return CustomImage.avator;
@@ -6823,9 +6868,6 @@ class ChatController extends GetxController {
     }
   }
 
-
-
-
   void leaveChatScreen() {
     print('🔄 Leaving chat screen, refreshing chat list...');
 
@@ -6844,7 +6886,8 @@ class ChatController extends GetxController {
   }
 
   int getUnreadCount(String chatId) {
-    final chat = [...personalChats, ...groupChats].firstWhereOrNull((c) => c.id == chatId);
+    final chat = [...personalChats, ...groupChats]
+        .firstWhereOrNull((c) => c.id == chatId);
     return chat?.unreadCount ?? 0;
   }
 
@@ -6857,7 +6900,9 @@ class ChatController extends GetxController {
   }
 
   List<Map<String, dynamic>> get messages {
-    return currentMessages.map((msg) => msg.toCompatibleMap(_consistentUserId ?? 'guest_user')).toList();
+    return currentMessages
+        .map((msg) => msg.toCompatibleMap(_consistentUserId ?? 'guest_user'))
+        .toList();
   }
 
   void _showSuccess(String message) {
@@ -6867,19 +6912,17 @@ class ChatController extends GetxController {
         message,
         backgroundColor: Colors.green,
         colorText: Colors.white,
-
       );
     }
   }
 
   void _showError(String message) {
     if (!_silentMode) {
-      Get. snackbar(
+      Get.snackbar(
         'Error',
         message,
         backgroundColor: Colors.red,
         colorText: Colors.white,
-
       );
     }
   }
@@ -6918,10 +6961,7 @@ class ChatController extends GetxController {
       }
 
       // Update the chat document to remove user from participants
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .update({
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
         'participants': FieldValue.arrayRemove([userId]),
         'participantDetails.$userId': FieldValue.delete(),
         'unreadCounts.$userId': FieldValue.delete(),
@@ -6946,7 +6986,6 @@ class ChatController extends GetxController {
       }
 
       print('✅ Successfully left group: $chatId');
-
     } catch (e) {
       print('❌ Error leaving group: $e');
       if (!_silentMode) {
@@ -6978,10 +7017,7 @@ class ChatController extends GetxController {
       await batch.commit();
 
       // Delete the chat document
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .delete();
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).delete();
 
       // If currently viewing this chat, go back
       if (currentChatId == chatId) {
@@ -6999,7 +7035,6 @@ class ChatController extends GetxController {
       }
 
       print('✅ Successfully deleted chat: $chatId');
-
     } catch (e) {
       print('❌ Error deleting chat: $e');
       if (!_silentMode) {
@@ -7031,10 +7066,7 @@ class ChatController extends GetxController {
       await batch.commit();
 
       // Update chat's last message
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .update({
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
         'lastMessage': 'Messages cleared',
         'lastMessageTimestamp': FieldValue.serverTimestamp(),
         'lastMessageSender': 'system',
@@ -7050,7 +7082,6 @@ class ChatController extends GetxController {
       // }
 
       print('✅ Successfully cleared messages for chat: $chatId');
-
     } catch (e) {
       print('❌ Error clearing chat messages: $e');
       if (!_silentMode) {
@@ -7100,7 +7131,6 @@ class ChatController extends GetxController {
       }
 
       print('✅ Successfully blocked user: $userId');
-
     } catch (e) {
       print('❌ Error blocking user: $e');
       if (!_silentMode) {
@@ -7139,7 +7169,6 @@ class ChatController extends GetxController {
       }
 
       print('✅ Successfully unblocked user: $userId');
-
     } catch (e) {
       print('❌ Error unblocking user: $e');
       if (!_silentMode) {
@@ -7186,7 +7215,8 @@ class ChatController extends GetxController {
           .collection('users')
           .doc(currentUser)
           .update({
-        'mutedChats.$chatId': mute ? FieldValue.serverTimestamp() : FieldValue.delete(),
+        'mutedChats.$chatId':
+            mute ? FieldValue.serverTimestamp() : FieldValue.delete(),
       });
 
       if (!_silentMode) {
@@ -7194,7 +7224,6 @@ class ChatController extends GetxController {
       }
 
       print('✅ Chat ${mute ? 'muted' : 'unmuted'}: $chatId');
-
     } catch (e) {
       print('❌ Error toggling chat mute: $e');
       if (!_silentMode) {
@@ -7227,9 +7256,6 @@ class ChatController extends GetxController {
     }
   }
 
-
-
-
 // CORRECTED: Helper method to create basic message when constructor fails
   ChatMessage _createBasicMessage(String docId, Map<String, dynamic> data) {
     return ChatMessage(
@@ -7260,7 +7286,8 @@ class ChatController extends GetxController {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
         print('✅ Firebase Auth User: ${currentUser.uid}');
-        print('🔐 Auth Provider: ${currentUser.providerData.map((e) => e.providerId)}');
+        print(
+            '🔐 Auth Provider: ${currentUser.providerData.map((e) => e.providerId)}');
         print('🔐 Is Anonymous: ${currentUser.isAnonymous}');
       } else {
         print('❌ No Firebase Auth user');
@@ -7289,14 +7316,12 @@ class ChatController extends GetxController {
         } catch (e) {
           print('⚠️ Storage list failed (might be normal): $e');
         }
-
       } catch (e) {
         print('❌ Storage connection error: $e');
       }
 
       // 5. Test Storage Upload with minimal data
       await testMinimalStorageUpload();
-
     } catch (e) {
       print('❌ Firebase debug error: $e');
     }
@@ -7321,7 +7346,8 @@ class ChatController extends GetxController {
       print('📍 Storage reference created');
 
       // Try upload
-      final task = ref.putData(testData, SettableMetadata(contentType: 'text/plain'));
+      final task =
+          ref.putData(testData, SettableMetadata(contentType: 'text/plain'));
       print('⬆️ Upload task created');
 
       final snapshot = await task;
@@ -7340,11 +7366,9 @@ class ChatController extends GetxController {
         } catch (e) {
           print('⚠️ Cleanup failed: $e');
         }
-
       } else {
         throw Exception('Upload failed with state: ${snapshot.state}');
       }
-
     } catch (e) {
       print('❌ Minimal storage test failed: $e');
       print('💡 This suggests a storage configuration issue');
@@ -7382,7 +7406,6 @@ class ChatController extends GetxController {
               print('⚠️ Unknown image format, header: $header');
             }
           }
-
         } catch (e) {
           print('❌ Cannot read file bytes: $e');
         }
@@ -7408,7 +7431,8 @@ class ChatController extends GetxController {
       }
 
       // Create reference
-      final fileName = 'chat_images/${DateTime.now().millisecondsSinceEpoch}_$originalFileName';
+      final fileName =
+          'chat_images/${DateTime.now().millisecondsSinceEpoch}_$originalFileName';
       final ref = FirebaseStorage.instance.ref().child(fileName);
 
       print('📁 Upload path: $fileName');
@@ -7431,8 +7455,10 @@ class ChatController extends GetxController {
 
       // Monitor progress
       task.snapshotEvents.listen((snapshot) {
-        final progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        print('📊 Progress: ${progress.toStringAsFixed(1)}% (${snapshot.bytesTransferred}/${snapshot.totalBytes})');
+        final progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        print(
+            '📊 Progress: ${progress.toStringAsFixed(1)}% (${snapshot.bytesTransferred}/${snapshot.totalBytes})');
       });
 
       // Wait for completion
@@ -7448,7 +7474,6 @@ class ChatController extends GetxController {
       } else {
         throw Exception('Upload state was ${snapshot.state}');
       }
-
     } catch (e) {
       print('❌ Debug upload error: $e');
       rethrow;
@@ -7487,11 +7512,13 @@ class ChatController extends GetxController {
       }
 
       // Create unique filename
-      final String fileName = 'chat_images/${DateTime.now().millisecondsSinceEpoch}_$originalFileName';
+      final String fileName =
+          'chat_images/${DateTime.now().millisecondsSinceEpoch}_$originalFileName';
       print('📝 Upload filename: $fileName');
 
       // Get Firebase Storage reference
-      final Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
+      final Reference storageRef =
+          FirebaseStorage.instance.ref().child(fileName);
       print('📍 Storage reference created: ${storageRef.fullPath}');
 
       // Prepare upload metadata
@@ -7511,7 +7538,8 @@ class ChatController extends GetxController {
 
       // Monitor upload progress
       uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-        final double progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        final double progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         print('📊 Upload progress: ${progress.toStringAsFixed(1)}%');
       });
 
@@ -7535,18 +7563,20 @@ class ChatController extends GetxController {
 
       print('✅ Image uploaded successfully to Firebase Storage');
       return downloadUrl;
-
     } catch (e) {
       print('❌ Firebase Storage upload error: $e');
       print('❌ Error type: ${e.runtimeType}');
 
       // Provide more specific error messages
       if (e.toString().contains('object-not-found')) {
-        throw Exception('Firebase Storage upload failed: Object not found. Check your Firebase Storage setup.');
+        throw Exception(
+            'Firebase Storage upload failed: Object not found. Check your Firebase Storage setup.');
       } else if (e.toString().contains('unauthorized')) {
-        throw Exception('Firebase Storage upload failed: Unauthorized. Check your storage rules.');
+        throw Exception(
+            'Firebase Storage upload failed: Unauthorized. Check your storage rules.');
       } else if (e.toString().contains('network')) {
-        throw Exception('Firebase Storage upload failed: Network error. Check your internet connection.');
+        throw Exception(
+            'Firebase Storage upload failed: Network error. Check your internet connection.');
       } else {
         throw Exception('Firebase Storage upload failed: $e');
       }
@@ -7561,12 +7591,14 @@ class ChatController extends GetxController {
       final bytes = await imageFile.readAsBytes();
       print('📊 Read ${bytes.length} bytes from file');
 
-      final fileName = 'chat_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName =
+          'chat_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
       final ref = FirebaseStorage.instance.ref().child(fileName);
 
       print('📁 Upload path: $fileName');
 
-      final task = ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+      final task =
+          ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
       final snapshot = await task;
 
       print('📋 Bytes upload state: ${snapshot.state}');
@@ -7578,7 +7610,6 @@ class ChatController extends GetxController {
       } else {
         throw Exception('Bytes upload state was ${snapshot.state}');
       }
-
     } catch (e) {
       print('❌ Bytes upload error: $e');
       rethrow;
@@ -7588,7 +7619,8 @@ class ChatController extends GetxController {
 // Enhanced image processing with extensive debugging - NO PATH DEPENDENCY
   Future<void> _processAndSendImageWithDebug(File imageFile) async {
     try {
-      print('🔄 =================== PROCESSING IMAGE WITH DEBUG ===================');
+      print(
+          '🔄 =================== PROCESSING IMAGE WITH DEBUG ===================');
 
       // Debug the image file first
       await debugImageFile(imageFile);
@@ -7615,17 +7647,16 @@ class ChatController extends GetxController {
       try {
         print('⬆️ Attempting primary upload method...');
         imageUrl = await _uploadImageToFirebaseWithDebug(imageFile);
-
       } catch (primaryError) {
         print('❌ Primary upload failed: $primaryError');
 
         try {
           print('⬆️ Attempting alternative upload method...');
           imageUrl = await _uploadImageAsBytesWithDebug(imageFile);
-
         } catch (altError) {
           print('❌ Alternative upload failed: $altError');
-          throw Exception('All upload methods failed. Primary: $primaryError, Alternative: $altError');
+          throw Exception(
+              'All upload methods failed. Primary: $primaryError, Alternative: $altError');
         }
       }
 
@@ -7650,7 +7681,6 @@ class ChatController extends GetxController {
 
         print('✅ Image message sent successfully!');
       }
-
     } catch (e) {
       print('❌ Complete process failed: $e');
       print('❌ Stack: ${StackTrace.current}');
@@ -7660,9 +7690,7 @@ class ChatController extends GetxController {
         'Could not send image: ${e.toString()}',
         backgroundColor: Colors.red,
         colorText: Colors.white,
-
       );
-
     } finally {
       isSendingMessage.value = false;
       print('🔄 =================== END PROCESSING ===================');
@@ -7690,7 +7718,8 @@ class ChatController extends GetxController {
   Future<String> _uploadImageSimple(File imageFile) async {
     try {
       // Create simple unique filename
-      final fileName = 'chat_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName =
+          'chat_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       // Upload to Firebase Storage
       final ref = FirebaseStorage.instance.ref().child(fileName);
@@ -7707,8 +7736,6 @@ class ChatController extends GetxController {
     }
   }
 
-
-
 // Call this method when your app starts to check everything
   Future<void> initializeWithFullDebug() async {
     print('🚀 Starting full debug initialization...');
@@ -7722,10 +7749,6 @@ class ChatController extends GetxController {
       print('⚠️ Minimal upload test failed: $e');
     }
   }
-
-
-
-
 
 // Alternative method using bytes (no external dependencies)
   Future<String> _uploadImageAsBytes(File imageFile) async {
@@ -7741,11 +7764,13 @@ class ChatController extends GetxController {
       }
 
       // Create unique filename
-      final String fileName = 'chat_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String fileName =
+          'chat_images/${DateTime.now().millisecondsSinceEpoch}.jpg';
       print('📝 Upload filename: $fileName');
 
       // Get Firebase Storage reference
-      final Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
+      final Reference storageRef =
+          FirebaseStorage.instance.ref().child(fileName);
 
       // Upload bytes
       final UploadTask uploadTask = storageRef.putData(
@@ -7771,7 +7796,6 @@ class ChatController extends GetxController {
       print('✅ Image uploaded successfully using bytes method');
 
       return downloadUrl;
-
     } catch (e) {
       print('❌ Bytes upload error: $e');
       throw Exception('Failed to upload image as bytes: $e');
@@ -7804,7 +7828,8 @@ class ChatController extends GetxController {
         throw Exception('Selected image file is empty');
       }
 
-      if (fileSize > 10 * 1024 * 1024) { // 10MB limit
+      if (fileSize > 10 * 1024 * 1024) {
+        // 10MB limit
         throw Exception('Image file is too large (max 10MB)');
       }
 
@@ -7859,7 +7884,6 @@ class ChatController extends GetxController {
       } else {
         throw Exception('Upload completed but no URL was returned');
       }
-
     } catch (e) {
       print('❌ Error processing image: $e');
       print('❌ Stack trace: ${StackTrace.current}');
@@ -7897,7 +7921,8 @@ class ChatController extends GetxController {
 
       // Create a simple test file
       final testData = Uint8List.fromList('Hello Firebase Storage'.codeUnits);
-      final testFileName = 'test/storage_test_${DateTime.now().millisecondsSinceEpoch}.txt';
+      final testFileName =
+          'test/storage_test_${DateTime.now().millisecondsSinceEpoch}.txt';
 
       final ref = FirebaseStorage.instance.ref().child(testFileName);
 
@@ -7916,22 +7941,20 @@ class ChatController extends GetxController {
         } catch (e) {
           print('⚠️ Could not delete test file: $e');
         }
-
       } else {
         print('❌ Firebase Storage test failed with state: ${uploadTask.state}');
       }
-
     } catch (e) {
       print('❌ Firebase Storage test error: $e');
 
       if (e.toString().contains('unauthorized')) {
-        print('💡 This suggests your Firebase Storage rules need to be updated');
+        print(
+            '💡 This suggests your Firebase Storage rules need to be updated');
       } else if (e.toString().contains('object-not-found')) {
         print('💡 This suggests Firebase Storage is not properly configured');
       }
     }
   }
-
 
   bool isUserOnlineInChat(Chat chat, String? targetUserId) {
     try {
@@ -7942,13 +7965,11 @@ class ChatController extends GetxController {
 
       print('🔍 Checking online status for $targetUserId: $isOnline');
       return isOnline;
-
     } catch (e) {
       print('❌ Error checking user online status: $e');
       return false;
     }
   }
-
 
   String? getOtherParticipantId(Chat chat) {
     try {
@@ -7981,7 +8002,6 @@ class ChatController extends GetxController {
     }
   }
 
-
   Future<void> sendImageFromCamera() async {
     try {
       print('📷 Starting camera image capture...');
@@ -8011,7 +8031,6 @@ class ChatController extends GetxController {
     }
   }
 
-
   Future<void> _processAndSendImageAsBase64(File imageFile) async {
     try {
       print('🔄 Processing image as Base64...');
@@ -8029,14 +8048,17 @@ class ChatController extends GetxController {
       final Uint8List imageBytes = await imageFile.readAsBytes();
       print('📊 Image size: ${imageBytes.length} bytes');
 
-      if (imageBytes.length > 800000) { // ~800KB limit
-        throw Exception('Image too large (${(imageBytes.length / 1024).toInt()}KB). Please choose a smaller image.');
+      if (imageBytes.length > 800000) {
+        // ~800KB limit
+        throw Exception(
+            'Image too large (${(imageBytes.length / 1024).toInt()}KB). Please choose a smaller image.');
       }
 
       final String base64Image = base64Encode(imageBytes);
       final String imageDataUri = 'data:image/jpeg;base64,$base64Image';
 
-      print('✅ Base64 conversion complete. Data URI length: ${imageDataUri.length}');
+      print(
+          '✅ Base64 conversion complete. Data URI length: ${imageDataUri.length}');
 
       // Create message with proper properties
       final message = ChatMessage(
@@ -8083,7 +8105,6 @@ class ChatController extends GetxController {
           duration: Duration(seconds: 2),
         );
       }
-
     } catch (e) {
       print('❌ Error processing Base64 image: $e');
 
@@ -8101,14 +8122,11 @@ class ChatController extends GetxController {
         userMessage,
         backgroundColor: Colors.red,
         colorText: Colors.white,
-
       );
     } finally {
       isSendingMessage.value = false;
     }
   }
-
-
 
 // Method to check Firebase Storage configuration
   Future<void> testFirebaseStorageConnection() async {
@@ -8117,7 +8135,8 @@ class ChatController extends GetxController {
 
       // Create a small test file
       final testData = Uint8List.fromList([1, 2, 3, 4, 5]);
-      final testRef = FirebaseStorage.instance.ref().child('test/connection_test.dat');
+      final testRef =
+          FirebaseStorage.instance.ref().child('test/connection_test.dat');
 
       // Try to upload test data
       final uploadTask = await testRef.putData(testData);
@@ -8140,14 +8159,11 @@ class ChatController extends GetxController {
       } else {
         throw Exception('Test upload failed with state: ${uploadTask.state}');
       }
-
     } catch (e) {
       print('❌ Firebase Storage test failed: $e');
       throw Exception('Firebase Storage is not properly configured: $e');
     }
   }
-
-
 
 // Updated _messageFromDocument method
   ChatMessage? _messageFromDocument(DocumentSnapshot doc) {
@@ -8171,7 +8187,6 @@ class ChatController extends GetxController {
       print('   - IsImageMessage: ${message.isImageMessage}');
 
       return message;
-
     } catch (e) {
       print('❌ Error converting message document ${doc.id}: $e');
       print('❌ Document data: ${doc.data()}');
@@ -8179,14 +8194,13 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   Future<void> _sendMessageToFirestore(ChatMessage message) async {
     try {
       print('📤 Sending message to Firestore: ${message.id}');
       print('📤 Message type: ${message.type}');
       print('📤 Message hasMedia: ${message.hasMedia}');
-      print('📤 ImageUrl present: ${message.imageUrl != null && message.imageUrl!.isNotEmpty}');
+      print(
+          '📤 ImageUrl present: ${message.imageUrl != null && message.imageUrl!.isNotEmpty}');
 
       // Use the toMap method from ChatMessage which handles all fields properly
       final messageData = message.toMap();
@@ -8215,14 +8229,15 @@ class ChatController extends GetxController {
 
       // Send notifications to other participants
       await _sendNotificationToParticipants(message);
-
     } catch (e) {
       print('❌ Error sending message to Firestore: $e');
       print('❌ Stack trace: ${StackTrace.current}');
 
       // Check if it's a size limit error
-      if (e.toString().contains('maximum size') || e.toString().contains('too large')) {
-        throw Exception('Image too large for Firestore. Please choose a smaller image.');
+      if (e.toString().contains('maximum size') ||
+          e.toString().contains('too large')) {
+        throw Exception(
+            'Image too large for Firestore. Please choose a smaller image.');
       }
 
       throw Exception('Failed to send message: $e');
@@ -8250,7 +8265,8 @@ class ChatController extends GetxController {
 
       // Get current user info
       final currentUserId = _consistentUserId;
-      final currentUserName = _currentUserData?['full_name']?.toString() ?? 'Someone';
+      final currentUserName =
+          _currentUserData?['full_name']?.toString() ?? 'Someone';
 
       if (currentUserId == null) {
         print('⚠️ No current user ID for notifications');
@@ -8267,7 +8283,8 @@ class ChatController extends GetxController {
         return;
       }
 
-      print('📤 Sending notifications to ${otherParticipants.length} participants');
+      print(
+          '📤 Sending notifications to ${otherParticipants.length} participants');
 
       // Prepare notification content
       String notificationTitle;
@@ -8292,13 +8309,11 @@ class ChatController extends GetxController {
       );
 
       print('✅ Notifications sent successfully');
-
     } catch (e) {
       print('❌ Error sending notifications: $e');
       // Don't throw error here as message was already sent successfully
     }
   }
-
 
   String _getNotificationBody(ChatMessage message) {
     switch (message.type) {
@@ -8318,7 +8333,6 @@ class ChatController extends GetxController {
         return 'Sent a message';
     }
   }
-
 
   /// Handle notification when app is opened from notification
   Future<void> handleNotificationOpened(Map<String, dynamic> data) async {
@@ -8375,8 +8389,6 @@ class ChatController extends GetxController {
     try {
       print('🔑 Initializing user FCM token...');
 
-
-
       final notificationService = Get.find<NotificationService>();
       final currentUserId = _consistentUserId;
 
@@ -8389,7 +8401,8 @@ class ChatController extends GetxController {
       int attempts = 0;
       const maxAttempts = 10;
 
-      while (notificationService.currentFCMToken.isEmpty && attempts < maxAttempts) {
+      while (notificationService.currentFCMToken.isEmpty &&
+          attempts < maxAttempts) {
         await Future.delayed(Duration(milliseconds: 500));
         attempts++;
       }
@@ -8409,13 +8422,10 @@ class ChatController extends GetxController {
       } else {
         print('⚠️ FCM token not available after waiting');
       }
-
     } catch (e) {
       print('❌ Error initializing user FCM token: $e');
     }
   }
-
-
 
   /// Clear FCM token on logout
   Future<void> clearNotificationToken() async {
@@ -8452,8 +8462,6 @@ class ChatController extends GetxController {
     }
   }
 
-
-
   /// Request notification permissions
   Future<void> requestNotificationPermissions() async {
     try {
@@ -8465,8 +8473,6 @@ class ChatController extends GetxController {
       print('❌ Error requesting notification permissions: $e');
     }
   }
-
-
 
   String getGroupImageForChatList(Chat chat) {
     try {
@@ -8512,7 +8518,6 @@ class ChatController extends GetxController {
       // Return default group image
       print('📁 Returning default group image');
       return CustomImage.userGroup;
-
     } catch (e) {
       print('❌ Error getting group image for chat list: $e');
       return CustomImage.userGroup;
@@ -8537,7 +8542,8 @@ class ChatController extends GetxController {
 
           if (firestoreGroupImage.isNotEmpty) {
             print('✅ Found group image in Firestore, updating local chat');
-            await _updateLocalChatGroupImageComprehensive(chatId, firestoreGroupImage);
+            await _updateLocalChatGroupImageComprehensive(
+                chatId, firestoreGroupImage);
           }
         }
       } catch (e) {
@@ -8567,17 +8573,15 @@ class ChatController extends GetxController {
   }
 
 // ENHANCED: Method to update group image and immediately reflect in chat list
-  Future<void> updateGroupImageAndRefreshList(String chatId, String newImageData) async {
+  Future<void> updateGroupImageAndRefreshList(
+      String chatId, String newImageData) async {
     try {
       print('🔄 Updating group image and refreshing list...');
       print('   Chat ID: $chatId');
       print('   Image type: ${_getImageType(newImageData)}');
 
       // Update the image in Firestore
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .update({
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
         'groupImage': newImageData,
         'imageUpdatedAt': FieldValue.serverTimestamp(),
       });
@@ -8594,7 +8598,6 @@ class ChatController extends GetxController {
       });
 
       print('✅ Group image updated and chat list refreshed');
-
     } catch (e) {
       print('❌ Error updating group image and refreshing list: $e');
     }
@@ -8644,8 +8647,8 @@ class ChatController extends GetxController {
 
         // Test the display method
         final displayImage = getGroupImageForChatList(foundChat);
-        print('   - Display Image: ${displayImage.length > 50 ? "${displayImage.substring(0, 50)}..." : displayImage}');
-
+        print(
+            '   - Display Image: ${displayImage.length > 50 ? "${displayImage.substring(0, 50)}..." : displayImage}');
       } else {
         print('❌ Chat not found in local lists');
         print('   - Personal chats: ${personalChats.length}');
@@ -8653,7 +8656,6 @@ class ChatController extends GetxController {
       }
 
       print('🔍 =================== END GROUP IMAGE DEBUG ===================');
-
     } catch (e) {
       print('❌ Error in group image debug: $e');
     }
@@ -8680,15 +8682,12 @@ class ChatController extends GetxController {
       forceRefreshChatListImages();
 
       print('✅ Group image test completed');
-
     } catch (e) {
       print('❌ Error in group image test: $e');
     }
   }
 
-
   final Map<String, String> _groupImageCache = {};
-
 
 // 2. FIXED: Stable group display image method with caching
   String getGroupDisplayImageStable(Chat chat) {
@@ -8709,7 +8708,8 @@ class ChatController extends GetxController {
         final cacheTime = _groupImageCacheTimestamp[chatId]!;
 
         // Use cache if less than 5 minutes old
-        if (DateTime.now().difference(cacheTime).inMinutes < 5 && cachedImage.isNotEmpty) {
+        if (DateTime.now().difference(cacheTime).inMinutes < 5 &&
+            cachedImage.isNotEmpty) {
           print('📦 Using cached group image (${cachedImage.length} chars)');
           return cachedImage;
         }
@@ -8738,7 +8738,6 @@ class ChatController extends GetxController {
       // Return default while fetching
       print('📁 Returning default group image');
       return CustomImage.userGroup;
-
     } catch (e) {
       print('❌ Error getting stable group display image: $e');
       return CustomImage.userGroup;
@@ -8795,7 +8794,8 @@ class ChatController extends GetxController {
   }
 
 // 5. STABLE update method that preserves data during rebuilds
-  Future<void> updateLocalChatGroupImageStable(String chatId, String newImageData) async {
+  Future<void> updateLocalChatGroupImageStable(
+      String chatId, String newImageData) async {
     try {
       print('🔄 STABLE update of local chat group image...');
       print('   Target chat ID: $chatId');
@@ -8845,11 +8845,13 @@ class ChatController extends GetxController {
       // Update current chat with stability check
       if (currentChat.value != null) {
         final currentChatValue = currentChat.value!;
-        if ((currentChatValue.id == chatId || currentChatValue.apiGroupId == chatId) &&
+        if ((currentChatValue.id == chatId ||
+                currentChatValue.apiGroupId == chatId) &&
             currentChatValue.groupImage != newImageData) {
           print('🎯 Updating current chat');
 
-          final updatedCurrentChat = _createStableChatWithImage(currentChatValue, newImageData);
+          final updatedCurrentChat =
+              _createStableChatWithImage(currentChatValue, newImageData);
           currentChat.value = updatedCurrentChat;
           foundAndUpdated = true;
         }
@@ -8860,7 +8862,6 @@ class ChatController extends GetxController {
         _stableUIRefresh();
         print('✅ STABLE update completed successfully');
       }
-
     } catch (e) {
       print('❌ Error in stable update: $e');
     }
@@ -8908,7 +8909,6 @@ class ChatController extends GetxController {
           print('❌ Error in delayed refresh: $e');
         }
       });
-
     } catch (e) {
       print('❌ Error in stable UI refresh: $e');
     }
@@ -8936,11 +8936,13 @@ class ChatController extends GetxController {
   }
 
 // 10. REPLACE your existing onGroupImageUpdatedFromGroupController with this stable version
-  Future<void> onGroupImageUpdatedFromGroupControllerStable(String chatId, String newImageData) async {
+  Future<void> onGroupImageUpdatedFromGroupControllerStable(
+      String chatId, String newImageData) async {
     try {
       print('🔄 ChatController: STABLE group image update notification');
       print('   Chat ID: $chatId');
-      print('   New image data type: ${newImageData.startsWith('data:image') ? 'Base64' : 'URL'}');
+      print(
+          '   New image data type: ${newImageData.startsWith('data:image') ? 'Base64' : 'URL'}');
       print('   Image data length: ${newImageData.length}');
 
       // Validate the image data first
@@ -8953,17 +8955,15 @@ class ChatController extends GetxController {
       await updateLocalChatGroupImageStable(chatId, newImageData);
 
       print('✅ ChatController: STABLE group image sync completed');
-
     } catch (e) {
       print('❌ ChatController: Error in stable group image sync: $e');
     }
   }
 
-
   Future<void> markMessagesAsRead(String chatId, String userId) async {
-    final unreadMessages = currentMessages.where((msg) =>
-    !msg.readBy.contains(userId) && msg.senderId != userId
-    ).toList();
+    final unreadMessages = currentMessages
+        .where((msg) => !msg.readBy.contains(userId) && msg.senderId != userId)
+        .toList();
 
     if (unreadMessages.isEmpty) return;
 
@@ -8971,17 +8971,24 @@ class ChatController extends GetxController {
 
     for (var message in unreadMessages) {
       batch.update(
-          FirebaseFirestore.instance.collection('chats').doc(chatId).collection('messages').doc(message.id),
-          {'readBy': FieldValue.arrayUnion([userId])}
-      );
+          FirebaseFirestore.instance
+              .collection('chats')
+              .doc(chatId)
+              .collection('messages')
+              .doc(message.id),
+          {
+            'readBy': FieldValue.arrayUnion([userId])
+          });
     }
 
     await batch.commit();
 
     // Update local messages
     for (int i = 0; i < currentMessages.length; i++) {
-      if (!currentMessages[i].readBy.contains(userId) && currentMessages[i].senderId != userId) {
-        final updatedReadBy = List<String>.from(currentMessages[i].readBy)..add(userId);
+      if (!currentMessages[i].readBy.contains(userId) &&
+          currentMessages[i].senderId != userId) {
+        final updatedReadBy = List<String>.from(currentMessages[i].readBy)
+          ..add(userId);
         currentMessages[i] = currentMessages[i].copyWith(readBy: updatedReadBy);
       }
     }
@@ -9018,7 +9025,8 @@ class ChatController extends GetxController {
   }
 
 // Method to get messages by date range
-  List<ChatMessage> getMessagesByDateRange(DateTime startDate, DateTime endDate) {
+  List<ChatMessage> getMessagesByDateRange(
+      DateTime startDate, DateTime endDate) {
     return currentMessages.where((message) {
       return message.timestamp.isAfter(startDate) &&
           message.timestamp.isBefore(endDate);
@@ -9027,7 +9035,9 @@ class ChatController extends GetxController {
 
 // Method to export chat messages
   List<Map<String, dynamic>> exportMessages(String currentUserId) {
-    return currentMessages.map((message) => message.toCompatibleMap(currentUserId)).toList();
+    return currentMessages
+        .map((message) => message.toCompatibleMap(currentUserId))
+        .toList();
   }
 
 // CORRECTED: Load messages with null safety
@@ -9048,17 +9058,22 @@ class ChatController extends GetxController {
           .orderBy('timestamp', descending: false)
           .snapshots()
           .listen(
-            (snapshot) {
+        (snapshot) {
           print('📨 Received ${snapshot.docs.length} messages');
 
-          final messages = snapshot.docs.map((doc) {
-            try {
-              return _messageFromDocument(doc);
-            } catch (e) {
-              print('❌ Error parsing message ${doc.id}: $e');
-              return _createBasicMessage(doc.id, doc.data() as Map<String, dynamic>);
-            }
-          }).where((msg) => msg != null).cast<ChatMessage>().toList();
+          final messages = snapshot.docs
+              .map((doc) {
+                try {
+                  return _messageFromDocument(doc);
+                } catch (e) {
+                  print('❌ Error parsing message ${doc.id}: $e');
+                  return _createBasicMessage(
+                      doc.id, doc.data() as Map<String, dynamic>);
+                }
+              })
+              .where((msg) => msg != null)
+              .cast<ChatMessage>()
+              .toList();
 
           currentMessages.value = messages;
           isLoadingMessages.value = false;
@@ -9074,24 +9089,17 @@ class ChatController extends GetxController {
           isLoadingMessages.value = false;
         },
       );
-
     } catch (e) {
       print('❌ Error setting up message listener: $e');
       isLoadingMessages.value = false;
     }
   }
 
-
-
 // Helper method to set current chat ID
   void setCurrentChatId(String chatId) {
     currentChatId = chatId;
     print('📍 Current chat ID set to: $chatId');
   }
-
-
-
-
 
   // Enhanced version with Firebase Storage upload (optional)
   Future<void> sendImageWithUpload({String? caption}) async {

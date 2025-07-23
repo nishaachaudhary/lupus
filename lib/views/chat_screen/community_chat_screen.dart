@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';                    // ADD THIS LINE
+import 'dart:convert'; // ADD THIS LINE
 import 'package:lupus_care/constant/dimension.dart';
 import 'package:lupus_care/constant/icons.dart';
 import 'package:lupus_care/constant/images.dart';
@@ -33,7 +33,6 @@ class CommunityChatScreen extends StatefulWidget {
 
 class _CommunityChatScreenState extends State<CommunityChatScreen>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
-
   // Keep the widget alive to maintain state
   @override
   bool get wantKeepAlive => true;
@@ -60,8 +59,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     _loadCommunityUsers();
     _loadCommunityData();
   }
-
-
 
   @override
   void dispose() {
@@ -147,14 +144,18 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
             if (groupsData['groups'] != null && groupsData['groups'] is List) {
               groups = groupsData['groups'];
               print("📋 Found groups in 'groups' key: ${groups.length} items");
-            } else if (groupsData['data'] != null && groupsData['data'] is List) {
+            } else if (groupsData['data'] != null &&
+                groupsData['data'] is List) {
               groups = groupsData['data'];
-              print("📋 Found groups in nested 'data' key: ${groups.length} items");
-            } else if (groupsData['results'] != null && groupsData['results'] is List) {
+              print(
+                  "📋 Found groups in nested 'data' key: ${groups.length} items");
+            } else if (groupsData['results'] != null &&
+                groupsData['results'] is List) {
               groups = groupsData['results'];
               print("📋 Found groups in 'results' key: ${groups.length} items");
             } else {
-              print("📋 Map doesn't contain expected list keys. Keys: ${groupsData.keys}");
+              print(
+                  "📋 Map doesn't contain expected list keys. Keys: ${groupsData.keys}");
               // If it's a single group object, wrap it in a list
               groups = [groupsData];
             }
@@ -210,8 +211,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
               };
 
               processedGroups.add(processedGroup);
-              print("✅ Processed group: ${processedGroup['name']} (ID: ${processedGroup['id']})");
-
+              print(
+                  "✅ Processed group: ${processedGroup['name']} (ID: ${processedGroup['id']})");
             } catch (e) {
               print("❌ Error processing group $i: $e");
               print("❌ Group data: $group");
@@ -223,13 +224,14 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
             _isLoadingGroups = false;
           });
 
-          print('✅ Successfully loaded ${availableGroups.length} available groups');
+          print(
+              '✅ Successfully loaded ${availableGroups.length} available groups');
 
           // Debug: Print final processed groups
           for (var group in availableGroups) {
-            print("📋 Final group: ${group['name']} - ${group['memberCount']} members - Joined: ${group['isJoined']}");
+            print(
+                "📋 Final group: ${group['name']} - ${group['memberCount']} members - Joined: ${group['isJoined']}");
           }
-
         } else {
           print('⚠️ API returned success but no data field');
           setState(() {
@@ -254,9 +256,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       });
     }
   }
-
-
-
 
   Future<void> _loadCommunityUsers() async {
     try {
@@ -290,46 +289,63 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         final users = response['data'] as List<dynamic>;
 
         setState(() {
-          communityUsers = users.map((user) {
-            // ENHANCED: Better avatar URL handling
-            String avatarUrl = '';
+          communityUsers = users
+              .map((user) {
+                // ENHANCED: Better avatar URL handling
+                String avatarUrl = '';
 
-            // Try different possible avatar field names
-            if (user['profile_image'] != null && user['profile_image'].toString().isNotEmpty) {
-              avatarUrl = user['profile_image'].toString();
-            } else if (user['avatar'] != null && user['avatar'].toString().isNotEmpty) {
-              avatarUrl = user['avatar'].toString();
-            } else if (user['image'] != null && user['image'].toString().isNotEmpty) {
-              avatarUrl = user['image'].toString();
-            } else if (user['profile_pic'] != null && user['profile_pic'].toString().isNotEmpty) {
-              avatarUrl = user['profile_pic'].toString();
-            }
+                // Try different possible avatar field names
+                if (user['profile_image'] != null &&
+                    user['profile_image'].toString().isNotEmpty) {
+                  avatarUrl = user['profile_image'].toString();
+                } else if (user['avatar'] != null &&
+                    user['avatar'].toString().isNotEmpty) {
+                  avatarUrl = user['avatar'].toString();
+                } else if (user['image'] != null &&
+                    user['image'].toString().isNotEmpty) {
+                  avatarUrl = user['image'].toString();
+                } else if (user['profile_pic'] != null &&
+                    user['profile_pic'].toString().isNotEmpty) {
+                  avatarUrl = user['profile_pic'].toString();
+                }
 
-            // Clean up the avatar URL
-            if (avatarUrl.isNotEmpty && avatarUrl != 'null' && avatarUrl != 'undefined') {
-              avatarUrl = avatarUrl.trim();
-              if (!avatarUrl.startsWith('http') && !avatarUrl.startsWith('data:image')) {
-                // Uncomment and modify this if you need to prepend a base URL:
-                // avatarUrl = 'https://your-api-domain.com/uploads/' + avatarUrl;
-              }
-            } else {
-              avatarUrl = CustomImage.avator; // Use default
-            }
+                // Clean up the avatar URL
+                if (avatarUrl.isNotEmpty &&
+                    avatarUrl != 'null' &&
+                    avatarUrl != 'undefined') {
+                  avatarUrl = avatarUrl.trim();
+                  if (!avatarUrl.startsWith('http') &&
+                      !avatarUrl.startsWith('data:image')) {
+                    // Uncomment and modify this if you need to prepend a base URL:
+                    // avatarUrl = 'https://your-api-domain.com/uploads/' + avatarUrl;
+                  }
+                } else {
+                  avatarUrl = CustomImage.avator; // Use default
+                }
 
-            print('👤 Processing user: ${user['full_name'] ?? user['name']} with avatar: $avatarUrl');
+                print(
+                    '👤 Processing user: ${user['full_name'] ?? user['name']} with avatar: $avatarUrl');
 
-            return {
-              'id': user['id']?.toString() ?? user['user_id']?.toString() ?? '',
-              'name': user['full_name']?.toString() ?? user['name']?.toString() ?? 'Unknown User',
-              'email': user['email']?.toString() ?? '',
-              'avatar': avatarUrl,
-              // FIXED: Get online status from API response, not hardcoded
-              'isOnline': _parseOnlineStatus(user),
-              'lastSeen': user['last_seen']?.toString(),
-              'specialty': user['specialty']?.toString() ?? 'Community Member',
-              'description': user['description']?.toString() ?? 'Lupus Care community member',
-            };
-          }).where((user) => user['id'] != userId).toList(); // Exclude current user
+                return {
+                  'id': user['id']?.toString() ??
+                      user['user_id']?.toString() ??
+                      '',
+                  'name': user['full_name']?.toString() ??
+                      user['name']?.toString() ??
+                      'Unknown User',
+                  'email': user['email']?.toString() ?? '',
+                  'avatar': avatarUrl,
+                  // FIXED: Get online status from API response, not hardcoded
+                  'isOnline': _parseOnlineStatus(user),
+                  'lastSeen': user['last_seen']?.toString(),
+                  'specialty':
+                      user['specialty']?.toString() ?? 'Community Member',
+                  'description': user['description']?.toString() ??
+                      'Lupus Care community member',
+                };
+              })
+              .where((user) => user['id'] != userId)
+              .toList(); // Exclude current user
 
           _isLoadingUsers = false;
         });
@@ -338,7 +354,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
 
         // Start listening for online status updates
         _startOnlineStatusListener();
-
       } else {
         print('❌ Failed to load users: ${response['message']}');
         setState(() {
@@ -361,9 +376,13 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       bool apiOnlineStatus = false;
 
       if (user['is_online'] != null) {
-        apiOnlineStatus = user['is_online'] == true || user['is_online'] == 1 || user['is_online'] == '1';
+        apiOnlineStatus = user['is_online'] == true ||
+            user['is_online'] == 1 ||
+            user['is_online'] == '1';
       } else if (user['online'] != null) {
-        apiOnlineStatus = user['online'] == true || user['online'] == 1 || user['online'] == '1';
+        apiOnlineStatus = user['online'] == true ||
+            user['online'] == 1 ||
+            user['online'] == '1';
       } else if (user['status'] != null) {
         final status = user['status'].toString().toLowerCase();
         apiOnlineStatus = status == 'online' || status == 'active';
@@ -396,8 +415,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-
-
   Timer? _onlineStatusTimer;
 
   void _startOnlineStatusListener() {
@@ -429,13 +446,18 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         // Update online statuses without rebuilding the entire list
         setState(() {
           for (var apiUser in users) {
-            final apiUserId = apiUser['id']?.toString() ?? apiUser['user_id']?.toString() ?? '';
+            final apiUserId = apiUser['id']?.toString() ??
+                apiUser['user_id']?.toString() ??
+                '';
 
             // Find corresponding user in communityUsers and update online status
-            final userIndex = communityUsers.indexWhere((user) => user['id'] == apiUserId);
+            final userIndex =
+                communityUsers.indexWhere((user) => user['id'] == apiUserId);
             if (userIndex >= 0) {
-              communityUsers[userIndex]['isOnline'] = _parseOnlineStatus(apiUser);
-              communityUsers[userIndex]['lastSeen'] = apiUser['last_seen']?.toString();
+              communityUsers[userIndex]['isOnline'] =
+                  _parseOnlineStatus(apiUser);
+              communityUsers[userIndex]['lastSeen'] =
+                  apiUser['last_seen']?.toString();
             }
           }
         });
@@ -465,7 +487,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       print('❌ Error refreshing chats on resume: $e');
     }
   }
-
 
 // ENHANCED CommunityChatScreen methods for real-time personal chat updates
 
@@ -505,7 +526,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       });
 
       print('✅ ENHANCED ChatController initialization completed');
-
     } catch (e) {
       print('❌ ChatController initialization failed: $e');
       setState(() {
@@ -599,22 +619,24 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                 if (searchQuery.isEmpty) {
                   currentChats = personalChats;
                 } else {
-                  currentChats = personalChats.where((chat) =>
-                      chat.getDisplayName(controller!.currentUserId)
+                  currentChats = personalChats
+                      .where((chat) => chat
+                          .getDisplayName(controller!.currentUserId)
                           .toLowerCase()
-                          .contains(searchQuery.toLowerCase())
-                  ).toList();
+                          .contains(searchQuery.toLowerCase()))
+                      .toList();
                 }
               } else {
                 // Group chats tab
                 if (searchQuery.isEmpty) {
                   currentChats = groupChats;
                 } else {
-                  currentChats = groupChats.where((chat) =>
-                      chat.getDisplayName(controller!.currentUserId)
+                  currentChats = groupChats
+                      .where((chat) => chat
+                          .getDisplayName(controller!.currentUserId)
                           .toLowerCase()
-                          .contains(searchQuery.toLowerCase())
-                  ).toList();
+                          .contains(searchQuery.toLowerCase()))
+                      .toList();
                 }
               }
 
@@ -632,9 +654,11 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
               print('   Is initial setup: $isInitialSetup');
 
               if (currentChats.isNotEmpty) {
-                print('   Latest chat: ${currentChats.first.getDisplayName(controller!.currentUserId)}');
+                print(
+                    '   Latest chat: ${currentChats.first.getDisplayName(controller!.currentUserId)}');
                 print('   Latest message: "${currentChats.first.lastMessage}"');
-                print('   Message timestamp: ${currentChats.first.lastMessageTimestamp}');
+                print(
+                    '   Message timestamp: ${currentChats.first.lastMessageTimestamp}');
               }
 
               // Show loading only during initial setup
@@ -657,16 +681,17 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                       child: currentChats.isEmpty
                           ? _buildEnhancedEmptyState(currentTab)
                           : Container(
-                        color: Colors.white,
-                        child: ListView.builder(
-                          physics: AlwaysScrollableScrollPhysics(),
-                          itemCount: currentChats.length,
-                          itemBuilder: (context, index) {
-                            final chat = currentChats[index];
-                            return _buildEnhancedLiveChatTile(chat, currentTab);
-                          },
-                        ),
-                      ),
+                              color: Colors.white,
+                              child: ListView.builder(
+                                physics: AlwaysScrollableScrollPhysics(),
+                                itemCount: currentChats.length,
+                                itemBuilder: (context, index) {
+                                  final chat = currentChats[index];
+                                  return _buildEnhancedLiveChatTile(
+                                      chat, currentTab);
+                                },
+                              ),
+                            ),
                     ),
                   ),
                 ],
@@ -687,7 +712,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
           CircularProgressIndicator(
             color: CustomColors.purpleColor,
           ),
-
         ],
       ),
     );
@@ -708,7 +732,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       margin: EdgeInsets.only(bottom: 1),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: _buildEnhancedChatAvatarWithOnlineStatus(chat, currentTab, unreadCount, isOnline),
+        leading: _buildEnhancedChatAvatarWithOnlineStatus(
+            chat, currentTab, unreadCount, isOnline),
         title: _buildEnhancedChatTitleWithTime(chat, currentTab, unreadCount),
         subtitle: _buildEnhancedChatSubtitleWithPreview(chat, unreadCount),
         onTap: () => _handleChatTapEnhanced(chat, currentTab),
@@ -717,8 +742,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
-
-  Widget _buildEnhancedChatTitleWithTime(Chat chat, int currentTab, int unreadCount) {
+  Widget _buildEnhancedChatTitleWithTime(
+      Chat chat, int currentTab, int unreadCount) {
     final displayName = chat.getDisplayName(controller!.currentUserId);
     final timeAgo = _formatLastMessageTimeEnhanced(chat.lastMessageTimestamp);
 
@@ -741,7 +766,9 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
           timeAgo,
           style: regularStyle.copyWith(
             fontSize: Dimensions.fontSizeSmall,
-            color: unreadCount > 0 ? CustomColors.purpleColor : CustomColors.blackColor,
+            color: unreadCount > 0
+                ? CustomColors.purpleColor
+                : CustomColors.blackColor,
             fontWeight: unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -752,8 +779,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
   Widget _buildEnhancedChatSubtitleWithPreview(Chat chat, int unreadCount) {
     String lastMessage = chat.lastMessage.isNotEmpty
         ? (chat.lastMessage.length > 50
-        ? '${chat.lastMessage.substring(0, 50)}...'
-        : chat.lastMessage)
+            ? '${chat.lastMessage.substring(0, 50)}...'
+            : chat.lastMessage)
         : 'No messages yet';
 
     return Column(
@@ -770,9 +797,14 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                 lastMessage,
                 style: regularStyle.copyWith(
                   fontSize: Dimensions.fontSizeLarge,
-                  color: unreadCount > 0 ? Colors.black87 : CustomColors.blackColor,
-                  fontWeight: unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
-                  fontStyle: lastMessage == 'No messages yet' ? FontStyle.italic : FontStyle.normal,
+                  color: unreadCount > 0
+                      ? Colors.black87
+                      : CustomColors.blackColor,
+                  fontWeight:
+                      unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
+                  fontStyle: lastMessage == 'No messages yet'
+                      ? FontStyle.italic
+                      : FontStyle.normal,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -781,7 +813,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
 
             // Unread count badge
             if (unreadCount > 0)
-
               Container(
                 height: 20,
                 width: 20,
@@ -806,8 +837,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
-
-  Widget _buildChatAvatarImageEnhanced(String? imageUrl, Chat chat, int currentTab) {
+  Widget _buildChatAvatarImageEnhanced(
+      String? imageUrl, Chat chat, int currentTab) {
     if (imageUrl != null && imageUrl.isNotEmpty) {
       // Base64 image
       if (imageUrl.startsWith('data:image')) {
@@ -828,7 +859,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
   }
 
 // 11. ENHANCED: Base64 image with better error handling
-  Widget _buildBase64ImageEnhanced(String base64Data, Chat chat, int currentTab) {
+  Widget _buildBase64ImageEnhanced(
+      String base64Data, Chat chat, int currentTab) {
     try {
       final parts = base64Data.split(',');
       if (parts.length != 2) {
@@ -855,7 +887,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
   }
 
 // 12. ENHANCED: Network image with better loading
-  Widget _buildNetworkImageEnhanced(String imageUrl, Chat chat, int currentTab) {
+  Widget _buildNetworkImageEnhanced(
+      String imageUrl, Chat chat, int currentTab) {
     return Image.network(
       imageUrl,
       width: 56,
@@ -878,7 +911,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                 strokeWidth: 2,
                 color: CustomColors.purpleColor,
                 value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
                     : null,
               ),
             ),
@@ -975,10 +1009,12 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
             // Mark as read option
             if ((chat.unreadCounts[controller!.currentUserId] ?? 0) > 0)
               ListTile(
-                leading: Icon(Icons.mark_email_read, color: CustomColors.purpleColor),
+                leading: Icon(Icons.mark_email_read,
+                    color: CustomColors.purpleColor),
                 title: Text('Mark as Read'),
                 onTap: () {
-                  controller!.markMessagesAsRead(chat.id, controller!.currentUserId!);
+                  controller!
+                      .markMessagesAsRead(chat.id, controller!.currentUserId!);
                   Get.back();
                 },
               ),
@@ -1025,7 +1061,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     Get.dialog(
       AlertDialog(
         title: Text('Delete Chat'),
-        content: Text('Are you sure you want to delete this chat? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete this chat? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
@@ -1069,7 +1106,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
   }
 
   Future<void> _openChatWithUserEnhanced(Map<String, dynamic> userData) async {
-    print('🔧 Opening chat with ${userData['name']} WITHOUT creating Firebase chat');
+    print(
+        '🔧 Opening chat with ${userData['name']} WITHOUT creating Firebase chat');
     print('🔧 User data: $userData');
 
     try {
@@ -1098,7 +1136,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       }
 
       // Check if chat already exists in Firebase (only those with messages)
-      String? existingChatId = await controller!.findExistingPersonalChatWithMessages(userData['id']);
+      String? existingChatId = await controller!
+          .findExistingPersonalChatWithMessages(userData['id']);
 
       Chat chatToOpen;
 
@@ -1106,18 +1145,22 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         // Chat exists in Firebase with messages - load it
         print('✅ Found existing Firebase chat with messages: $existingChatId');
 
-        final existingChat = [...controller!.personalChats, ...controller!.groupChats]
-            .firstWhereOrNull((chat) => chat.id == existingChatId);
+        final existingChat = [
+          ...controller!.personalChats,
+          ...controller!.groupChats
+        ].firstWhereOrNull((chat) => chat.id == existingChatId);
 
         if (existingChat != null) {
           chatToOpen = existingChat;
         } else {
           // Create from Firebase data
-          chatToOpen = await controller!.createChatFromExistingFirebase(existingChatId);
+          chatToOpen =
+              await controller!.createChatFromExistingFirebase(existingChatId);
         }
       } else {
         // No Firebase chat exists with messages - create TEMPORARY chat object
-        print('🔄 Creating temporary chat object (no Firebase document until first message)');
+        print(
+            '🔄 Creating temporary chat object (no Firebase document until first message)');
 
         final otherUserConsistentId = 'app_user_${userData['id']}';
 
@@ -1155,7 +1198,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       Get.to(() => PersonalChatScreen(chat: chatToOpen))?.then((_) {
         _handleReturnFromChatEnhanced();
       });
-
     } catch (e) {
       print('❌ Error in _openChatWithUserEnhanced: $e');
       Get.snackbar(
@@ -1167,13 +1209,9 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-
-
-
   Future<void> _openChatWithUser(Map<String, dynamic> userData) async {
     await _openChatWithUserEnhanced(userData);
   }
-
 
   Future<void> _handleEnhancedPullToRefresh() async {
     try {
@@ -1203,7 +1241,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -1215,7 +1252,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       print('📱 App paused');
     }
   }
-
 
   Future<void> _handleAppResume() async {
     try {
@@ -1244,7 +1280,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
@@ -1271,7 +1306,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
               CircularProgressIndicator(
                 color: CustomColors.purpleColor,
               ),
-
             ],
           ),
         ),
@@ -1281,7 +1315,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     // Show the main chat interface
     return _buildEnhancedChatInterface();
   }
-
 
   Widget _buildEnhancedChatInterface() {
     return Scaffold(
@@ -1296,35 +1329,34 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         ),
         elevation: 0,
         backgroundColor: Colors.white,
-
       ),
       body: controller != null
           ? Obx(() {
-        // Show loading state only during initial setup
-        if (controller!.isLoading.value && controller!.isInitialSetup.value) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(color: CustomColors.purpleColor),
+              // Show loading state only during initial setup
+              if (controller!.isLoading.value &&
+                  controller!.isInitialSetup.value) {
+                return const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                          color: CustomColors.purpleColor),
+                    ],
+                  ),
+                );
+              }
 
-              ],
-            ),
-          );
-        }
-
-        return Column(
-          children: [
-            // Recent Chats Section with Real-time Updates
-            Expanded(child: _buildRealTimeChatsSection()),
-          ],
-        );
-      })
+              return Column(
+                children: [
+                  // Recent Chats Section with Real-time Updates
+                  Expanded(child: _buildRealTimeChatsSection()),
+                ],
+              );
+            })
           : _buildControllerNotAvailableState(),
       floatingActionButton: _buildFloatingActionButton(),
     );
   }
-
 
   Widget _buildCreatingChatState() {
     return Center(
@@ -1385,8 +1417,7 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                     'Search for a user & Start a new chat or join the conversation.',
                     style: semiLightStyle.copyWith(
                         fontSize: Dimensions.fontSizeLarge,
-                        color: CustomColors.leaveColor
-                    ),
+                        color: CustomColors.leaveColor),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -1426,8 +1457,7 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                     'Search for a group & Start a new chat or join a Group.',
                     style: semiLightStyle.copyWith(
                         fontSize: Dimensions.fontSizeLarge,
-                        color: CustomColors.leaveColor
-                    ),
+                        color: CustomColors.leaveColor),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -1440,8 +1470,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       );
     }
   }
-
-
 
   Widget _buildDetailedPersonTile(Map<String, dynamic> person) {
     final isOnline = person['isOnline'] == true;
@@ -1486,7 +1514,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                   border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: (isOnline ? Colors.green : Colors.grey[400]!).withOpacity(0.3),
+                      color: (isOnline ? Colors.green : Colors.grey[400]!)
+                          .withOpacity(0.3),
                       blurRadius: 3,
                       spreadRadius: 0.5,
                     ),
@@ -1505,7 +1534,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // Enhanced status text with better formatting
             // Row(
             //   children: [
@@ -1540,7 +1568,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
   }
 
 // 2. UPDATE: _buildEnhancedChatAvatarWithOnlineStatus to always show status
-  Widget _buildEnhancedChatAvatarWithOnlineStatus(Chat chat, int currentTab, int unreadCount, bool isOnline) {
+  Widget _buildEnhancedChatAvatarWithOnlineStatus(
+      Chat chat, int currentTab, int unreadCount, bool isOnline) {
     print('🖼️ Building ENHANCED chat avatar for: ${chat.id}');
     print('   Is Group: ${chat.isGroup}');
     print('   Is Online: $isOnline');
@@ -1568,7 +1597,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                 : null,
           ),
           child: ClipOval(
-            child: _buildChatAvatarImageEnhanced(displayImage, chat, currentTab),
+            child:
+                _buildChatAvatarImageEnhanced(displayImage, chat, currentTab),
           ),
         ),
 
@@ -1587,7 +1617,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: (isOnline ? Colors.green : Colors.grey[400]!).withOpacity(0.3),
+                    color: (isOnline ? Colors.green : Colors.grey[400]!)
+                        .withOpacity(0.3),
                     blurRadius: 4,
                     spreadRadius: 1,
                   ),
@@ -1631,8 +1662,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
-
-
   String _formatLastSeen(String lastSeenStr) {
     try {
       final lastSeen = DateTime.parse(lastSeenStr);
@@ -1661,14 +1690,13 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-
   Widget _buildStartChatButton() {
     return ElevatedButton.icon(
-      onPressed: (){
+      onPressed: () {
         Get.to(() => FindFriendScreen(
-          communityUsers: communityUsers, // Your list of users
-          onChatWithUser: _openChatWithUser, // Your chat opening function
-        ));
+              communityUsers: communityUsers, // Your list of users
+              onChatWithUser: _openChatWithUser, // Your chat opening function
+            ));
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: CustomColors.purpleColor,
@@ -1694,13 +1722,13 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         ElevatedButton.icon(
-          onPressed:(){
+          onPressed: () {
             Get.to(() => FindGroupScreen(
-              availableGroups: availableGroups,
-              onRefreshGroups: _loadAvailableGroups,
-              onJoinGroup: _createFirebaseGroupFromAPI,
-              onOpenGroupChat: _openExistingGroupChat,
-            ));
+                  availableGroups: availableGroups,
+                  onRefreshGroups: _loadAvailableGroups,
+                  onJoinGroup: _createFirebaseGroupFromAPI,
+                  onOpenGroupChat: _openExistingGroupChat,
+                ));
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: CustomColors.purpleColor,
@@ -1719,15 +1747,12 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
             ),
           ),
         ),
-
       ],
     );
   }
 
-
-
-
-  Future<void> _createFirebaseGroupFromAPI(Map<String, dynamic> apiGroup) async {
+  Future<void> _createFirebaseGroupFromAPI(
+      Map<String, dynamic> apiGroup) async {
     try {
       if (controller == null || controller!.currentUserId == null) {
         print('❌ Controller or user ID not available');
@@ -1745,7 +1770,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
           .get();
 
       if (existingGroups.docs.isNotEmpty) {
-        print('✅ Firebase group already exists: ${existingGroups.docs.first.id}');
+        print(
+            '✅ Firebase group already exists: ${existingGroups.docs.first.id}');
         return;
       }
 
@@ -1773,7 +1799,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       unreadCounts[currentUserId] = 0;
 
       // Add API group members with consistent user ID format
-      if (membersResponse['status'] == 'success' && membersResponse['data'] != null) {
+      if (membersResponse['status'] == 'success' &&
+          membersResponse['data'] != null) {
         final members = membersResponse['data'] as List<dynamic>;
         print('👥 Found ${members.length} API group members');
 
@@ -1791,7 +1818,9 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
           participantDetails[consistentUserId] = {
             'id': consistentUserId,
             'name': member['name'] ?? member['full_name'] ?? 'Member',
-            'avatar': member['avatar'] ?? member['profile_image'] ?? CustomImage.avator,
+            'avatar': member['avatar'] ??
+                member['profile_image'] ??
+                CustomImage.avator,
             'isOnline': false,
             'joinedAt': FieldValue.serverTimestamp(),
             'role': 'member',
@@ -1799,7 +1828,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
           };
           unreadCounts[consistentUserId] = 0;
 
-          print('👤 Added member: ${member['name']} (API: $apiUserId, Consistent: $consistentUserId)');
+          print(
+              '👤 Added member: ${member['name']} (API: $apiUserId, Consistent: $consistentUserId)');
         }
       }
 
@@ -1827,33 +1857,30 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       };
 
       // Create Firebase group document
-      final docRef = await FirebaseFirestore.instance
-          .collection('chats')
-          .add(groupData);
+      final docRef =
+          await FirebaseFirestore.instance.collection('chats').add(groupData);
 
       print('✅ Firebase group created successfully: ${docRef.id}');
       print('🔗 Linked with API group ID: ${apiGroup['id']}');
 
       // CRITICAL: Notify all participants about the new group
-      await _notifyAllParticipantsAboutGroup(docRef.id, allParticipants, groupData);
+      await _notifyAllParticipantsAboutGroup(
+          docRef.id, allParticipants, groupData);
 
       // Force refresh chats to show new group
       await Future.delayed(Duration(milliseconds: 1000));
       await controller!.forceRefreshChats();
-
     } catch (e) {
       print('❌ Error creating Firebase group from API: $e');
     }
   }
 
 // 2. CRITICAL: Notify all participants about new group
-  Future<void> _notifyAllParticipantsAboutGroup(
-      String groupId,
-      List<String> participants,
-      Map<String, dynamic> groupData
-      ) async {
+  Future<void> _notifyAllParticipantsAboutGroup(String groupId,
+      List<String> participants, Map<String, dynamic> groupData) async {
     try {
-      print('🔔 Notifying ${participants.length} participants about new group: $groupId');
+      print(
+          '🔔 Notifying ${participants.length} participants about new group: $groupId');
 
       final batch = FirebaseFirestore.instance.batch();
       final currentUserId = controller!.currentUserId!;
@@ -1863,9 +1890,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         if (participantId == currentUserId) continue;
 
         // Create notification document
-        final notificationRef = FirebaseFirestore.instance
-            .collection('notifications')
-            .doc();
+        final notificationRef =
+            FirebaseFirestore.instance.collection('notifications').doc();
 
         batch.set(notificationRef, {
           'type': 'new_group',
@@ -1883,14 +1909,10 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
 
       await batch.commit();
       print('✅ All participants notified about new group');
-
     } catch (e) {
       print('❌ Error notifying participants about group: $e');
     }
   }
-
-
-
 
   Future<void> _createGroupWithUsers() async {
     if (controller == null) return;
@@ -1901,7 +1923,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       // Get current user info
       final currentUserId = controller!.currentUserId!;
       final currentUserName = controller!.currentUserName ?? 'User';
-      final currentUserAvatar = controller!.currentUserAvatar ?? CustomImage.avator;
+      final currentUserAvatar =
+          controller!.currentUserAvatar ?? CustomImage.avator;
 
       // Prepare all participants with consistent user ID format
       final allParticipants = <String>[currentUserId];
@@ -1928,7 +1951,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         participantDetails[consistentUserId] = {
           'id': consistentUserId,
           'name': member.name,
-          'avatar': member.avatar.isNotEmpty ? member.avatar : CustomImage.avator,
+          'avatar':
+              member.avatar.isNotEmpty ? member.avatar : CustomImage.avator,
           'isOnline': member.isOnline,
           'role': 'member',
           'originalApiId': apiUserId,
@@ -1936,7 +1960,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         };
         unreadCounts[consistentUserId] = 0;
 
-        print('👤 Added member: ${member.name} (API: $apiUserId, Consistent: $consistentUserId)');
+        print(
+            '👤 Added member: ${member.name} (API: $apiUserId, Consistent: $consistentUserId)');
       }
 
       // Create group document
@@ -1959,14 +1984,14 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       };
 
       // Create group in Firebase
-      final docRef = await FirebaseFirestore.instance
-          .collection('chats')
-          .add(groupData);
+      final docRef =
+          await FirebaseFirestore.instance.collection('chats').add(groupData);
 
       print('✅ Group created successfully: ${docRef.id}');
 
       // CRITICAL: Notify all participants
-      await _notifyAllParticipantsAboutGroup(docRef.id, allParticipants, groupData);
+      await _notifyAllParticipantsAboutGroup(
+          docRef.id, allParticipants, groupData);
 
       // Close bottom sheet
       Get.back();
@@ -1983,7 +2008,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       // Force refresh chats
       await Future.delayed(Duration(milliseconds: 1000));
       await controller!.forceRefreshChats();
-
     } catch (e) {
       print('❌ Error creating group with users: $e');
       Get.snackbar(
@@ -1997,7 +2021,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-
   Future<void> testNotificationSystem() async {
     try {
       print('🧪 Testing notification system...');
@@ -2006,9 +2029,7 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       final testUserId = 'app_user_test';
 
       // Create test notification
-      await FirebaseFirestore.instance
-          .collection('notifications')
-          .add({
+      await FirebaseFirestore.instance.collection('notifications').add({
         'type': 'test',
         'userId': testUserId,
         'createdBy': currentUserId,
@@ -2032,12 +2053,10 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
           print('🔔 Notification: ${doc.data()}');
         }
       });
-
     } catch (e) {
       print('❌ Error testing notification system: $e');
     }
   }
-
 
   void _openExistingGroupChat(Map<String, dynamic> group) async {
     final groupId = group['id']?.toString();
@@ -2078,7 +2097,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               CircularProgressIndicator(color: CustomColors.purpleColor),
-
             ],
           ),
         ),
@@ -2089,7 +2107,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     try {
       // Step 1: Get group details first
       print("📞 Step 1: Calling get_group_details API for group: $groupId");
-      final groupDetailsResponse = await _authService.getGroupDetails(groupId: groupId);
+      final groupDetailsResponse =
+          await _authService.getGroupDetails(groupId: groupId);
 
       print("📥 Group details response: ${groupDetailsResponse['status']}");
       print("📊 Group details data: ${groupDetailsResponse['data']}");
@@ -2107,7 +2126,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       }
 
       // Extract group details from response
-      final groupDetailsData = groupDetailsResponse['data'] as Map<String, dynamic>? ?? {};
+      final groupDetailsData =
+          groupDetailsResponse['data'] as Map<String, dynamic>? ?? {};
 
       // Get the group ID from the details response (in case it's different)
       final actualGroupId = groupDetailsData['id']?.toString() ??
@@ -2117,11 +2137,14 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       print("📋 Extracted group details:");
       print("   Original Group ID: '$groupId'");
       print("   Actual Group ID: '$actualGroupId'");
-      print("   Group Name: '${groupDetailsData['name'] ?? groupDetailsData['group_name'] ?? groupName}'");
+      print(
+          "   Group Name: '${groupDetailsData['name'] ?? groupDetailsData['group_name'] ?? groupName}'");
 
       // Step 2: Get group members using the actual group ID
-      print("📞 Step 2: Calling get_group_members API for group: $actualGroupId");
-      final membersResponse = await _authService.getGroupMembers(groupId: actualGroupId);
+      print(
+          "📞 Step 2: Calling get_group_members API for group: $actualGroupId");
+      final membersResponse =
+          await _authService.getGroupMembers(groupId: actualGroupId);
 
       print("📥 Group members response: ${membersResponse['status']}");
       print("📊 Group members data: ${membersResponse['data']}");
@@ -2151,10 +2174,10 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
 
       // OPTION 1: Navigate to GroupInfoScreen first
       Get.to(() => GroupInfoScreen(
-        groupId: finalGroupId,
-        groupName: finalGroupName,
-        memberCount: int.tryParse(group['memberCount']?.toString() ?? '0'),
-      ));
+            groupId: finalGroupId,
+            groupName: finalGroupName,
+            memberCount: int.tryParse(group['memberCount']?.toString() ?? '0'),
+          ));
 
       // OPTION 2: Or navigate directly to chat if Firebase group exists
       // You can check if Firebase group exists and navigate to PersonalChatScreen
@@ -2181,7 +2204,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       ));
     }
     */
-
     } catch (e) {
       // Close loading dialog if still open
       if (Get.isDialogOpen ?? false) {
@@ -2199,7 +2221,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       );
     }
   }
-
 
   Widget _buildControllerNotAvailableState() {
     return Center(
@@ -2231,7 +2252,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       ),
     );
   }
-
 
   Widget? _buildFloatingActionButton() {
     if (controller == null) return null;
@@ -2286,13 +2306,10 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         ),
         child: Column(
           children: [
-
-
             Container(
               padding: EdgeInsets.all(16),
               child: Column(
                 children: [
-
                   Container(
                     width: 40,
                     height: 4,
@@ -2305,7 +2322,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-
                       if (_isLoadingUsers)
                         SizedBox(
                           width: 20,
@@ -2323,44 +2339,45 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
             Expanded(
               child: _isLoadingUsers
                   ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: CustomColors.purpleColor),
-
-                  ],
-                ),
-              )
-                  : communityUsers.isEmpty
-                  ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
-                    SizedBox(height: 16),
-                    Text(
-                      'No community members found',
-                      style: mediumStyle.copyWith(
-                        fontSize: Dimensions.fontSizeLarge,
-                        color: Colors.grey[600],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                              color: CustomColors.purpleColor),
+                        ],
                       ),
-                    ),
-                    SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: _loadCommunityUsers,
-                      child: Text('Refresh'),
-                    ),
-                  ],
-                ),
-              )
-                  : ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                itemCount: communityUsers.length,
-                itemBuilder: (context, index) {
-                  final person = communityUsers[index];
-                  return _buildDetailedPersonTile(person);
-                },
-              ),
+                    )
+                  : communityUsers.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.people_outline,
+                                  size: 64, color: Colors.grey[400]),
+                              SizedBox(height: 16),
+                              Text(
+                                'No community members found',
+                                style: mediumStyle.copyWith(
+                                  fontSize: Dimensions.fontSizeLarge,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              ElevatedButton(
+                                onPressed: _loadCommunityUsers,
+                                child: Text('Refresh'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: communityUsers.length,
+                          itemBuilder: (context, index) {
+                            final person = communityUsers[index];
+                            return _buildDetailedPersonTile(person);
+                          },
+                        ),
             ),
           ],
         ),
@@ -2368,9 +2385,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       isScrollControlled: true,
     );
   }
-
-
-
 
   void _showCreateGroupBottomSheet() {
     if (controller == null) return;
@@ -2382,13 +2396,15 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     controller!.filteredUsers.clear();
 
     // Convert API users to AppUser objects for selection
-    final availableUsers = communityUsers.map((person) => AppUser(
-      id: person['id'],
-      name: person['name'],
-      email: person['email'],
-      avatar: person['avatar'],
-      isOnline: person['isOnline'] ?? false,
-    )).toList();
+    final availableUsers = communityUsers
+        .map((person) => AppUser(
+              id: person['id'],
+              name: person['name'],
+              email: person['email'],
+              avatar: person['avatar'],
+              isOnline: person['isOnline'] ?? false,
+            ))
+        .toList();
 
     // Reset selection state
     for (var user in availableUsers) {
@@ -2396,7 +2412,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
 
     // Add search controller for members
-    final TextEditingController memberSearchController = TextEditingController();
+    final TextEditingController memberSearchController =
+        TextEditingController();
     List<AppUser> filteredUsers = List.from(availableUsers);
 
     Get.bottomSheet(
@@ -2419,7 +2436,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                     final name = user.name.toLowerCase();
                     final email = user.email.toLowerCase();
                     final searchQuery = query.toLowerCase();
-                    return name.contains(searchQuery) || email.contains(searchQuery);
+                    return name.contains(searchQuery) ||
+                        email.contains(searchQuery);
                   }).toList();
                 }
               });
@@ -2452,7 +2470,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                             color: Colors.grey,
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.close, size: 16, color: Colors.white),
+                            icon: const Icon(Icons.close,
+                                size: 16, color: Colors.white),
                             onPressed: () {
                               memberSearchController.dispose();
                               Get.back();
@@ -2498,7 +2517,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: CustomColors.purpleColor),
+                            borderSide:
+                                BorderSide(color: CustomColors.purpleColor),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -2510,9 +2530,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                     ),
                   ],
                 ),
-
-
-
 
                 const SizedBox(height: 16),
 
@@ -2526,8 +2543,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                 ),
 
                 const SizedBox(height: 8),
-
-
 
                 // Search field for members
                 Container(
@@ -2551,16 +2566,16 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                       ),
                       suffixIcon: memberSearchController.text.isNotEmpty
                           ? IconButton(
-                        icon: Icon(
-                          Icons.clear,
-                          color: Colors.grey[500],
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          memberSearchController.clear();
-                          onSearchChanged('');
-                        },
-                      )
+                              icon: Icon(
+                                Icons.clear,
+                                color: Colors.grey[500],
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                memberSearchController.clear();
+                                onSearchChanged('');
+                              },
+                            )
                           : null,
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
@@ -2579,13 +2594,13 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
 
                 const SizedBox(height: 12),
 
-
                 // Show loading state for users
                 if (_isLoadingUsers)
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(20),
-                      child: CircularProgressIndicator(color: CustomColors.purpleColor),
+                      child: CircularProgressIndicator(
+                          color: CustomColors.purpleColor),
                     ),
                   )
                 else if (availableUsers.isEmpty)
@@ -2594,7 +2609,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          Icon(Icons.people_outline, size: 48, color: Colors.grey[400]),
+                          Icon(Icons.people_outline,
+                              size: 48, color: Colors.grey[400]),
                           const SizedBox(height: 12),
                           const Text('No users available for group'),
                           const SizedBox(height: 8),
@@ -2608,99 +2624,94 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                   )
                 else if (filteredUsers.isEmpty)
                   // No search results
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          children: [
-                            Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
-                            const SizedBox(height: 12),
-                            const Text('No members found'),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Try searching with different keywords',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 13,
-                              ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          Icon(Icons.search_off,
+                              size: 48, color: Colors.grey[400]),
+                          const SizedBox(height: 12),
+                          const Text('No members found'),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Try searching with different keywords',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    )
-                  else
+                    ),
+                  )
+                else
                   // Members list
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: filteredUsers.length,
-                        itemBuilder: (context, index) {
-                          final user = filteredUsers[index];
-                          // Find the original person data
-                          final personIndex = availableUsers.indexWhere((u) => u.id == user.id);
-                          final person = personIndex >= 0 ? communityUsers[personIndex] : null;
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = filteredUsers[index];
+                        // Find the original person data
+                        final personIndex =
+                            availableUsers.indexWhere((u) => u.id == user.id);
+                        final person = personIndex >= 0
+                            ? communityUsers[personIndex]
+                            : null;
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 8,
-                              ),
-                              leading: Stack(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: CustomColors.lightPurpleColor,
-                                    child: ClipOval(
-                                      child: _buildUserImage(
-                                        person?['avatar'] ?? user.avatar,
-                                        width: 48,
-                                        height: 48,
-                                      ),
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 8,
+                            ),
+                            leading: Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 24,
+                                  backgroundColor:
+                                      CustomColors.lightPurpleColor,
+                                  child: ClipOval(
+                                    child: _buildUserImage(
+                                      person?['avatar'] ?? user.avatar,
+                                      width: 48,
+                                      height: 48,
                                     ),
                                   ),
-                                  // Online indicator
-
-                                ],
-                              ),
-                              title: Text(
-                                user.name,
-                                style: mediumStyle.copyWith(
-                                  fontSize: Dimensions.fontSizeLarge,
-                                  fontWeight: user.isSelected ? FontWeight.bold : FontWeight.normal,
-                                  color: user.isSelected ? CustomColors.purpleColor : Colors.black,
                                 ),
+                                // Online indicator
+                              ],
+                            ),
+                            title: Text(
+                              user.name,
+                              style: mediumStyle.copyWith(
+                                fontSize: Dimensions.fontSizeLarge,
+                                fontWeight: user.isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: user.isSelected
+                                    ? CustomColors.purpleColor
+                                    : Colors.black,
                               ),
-                              subtitle: person?['specialty'] != null
-                                  ? Text(
-                                person!['specialty'],
-                                style: regularStyle.copyWith(
-                                  fontSize: Dimensions.fontSizeDefault,
-                                  color: Colors.grey[600],
-                                ),
-                              )
-                                  : null,
-                              trailing: Checkbox(
-                                value: user.isSelected,
-                                onChanged: (value) {
-                                  setStateLocal(() {
-                                    user.isSelected = !user.isSelected;
-                                    if (user.isSelected) {
-                                      if (!controller!.selectedMembers.contains(user)) {
-                                        controller!.selectedMembers.add(user);
-                                      }
-                                    } else {
-                                      controller!.selectedMembers.remove(user);
-                                    }
-                                  });
-                                },
-                                activeColor: CustomColors.purpleColor,
-                              ),
-                              onTap: () {
+                            ),
+                            subtitle: person?['specialty'] != null
+                                ? Text(
+                                    person!['specialty'],
+                                    style: regularStyle.copyWith(
+                                      fontSize: Dimensions.fontSizeDefault,
+                                      color: Colors.grey[600],
+                                    ),
+                                  )
+                                : null,
+                            trailing: Checkbox(
+                              value: user.isSelected,
+                              onChanged: (value) {
                                 setStateLocal(() {
                                   user.isSelected = !user.isSelected;
                                   if (user.isSelected) {
-                                    if (!controller!.selectedMembers.contains(user)) {
+                                    if (!controller!.selectedMembers
+                                        .contains(user)) {
                                       controller!.selectedMembers.add(user);
                                     }
                                   } else {
@@ -2708,59 +2719,83 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                                   }
                                 });
                               },
+                              activeColor: CustomColors.purpleColor,
                             ),
-                          );
-                        },
-                      ),
+                            onTap: () {
+                              setStateLocal(() {
+                                user.isSelected = !user.isSelected;
+                                if (user.isSelected) {
+                                  if (!controller!.selectedMembers
+                                      .contains(user)) {
+                                    controller!.selectedMembers.add(user);
+                                  }
+                                } else {
+                                  controller!.selectedMembers.remove(user);
+                                }
+                              });
+                            },
+                          ),
+                        );
+                      },
                     ),
+                  ),
 
                 const SizedBox(height: 16),
 
                 // Create Group Button
                 Obx(() => ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CustomColors.greenColor,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: controller!.isLoading.value
-                      ? null
-                      : () {
-                    if (controller!.groupName.value.trim().isEmpty) {
-                      Get.snackbar('Error', 'Please enter a group name',
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,);
-                      return;
-                    }
-                    if (controller!.selectedMembers.isEmpty) {
-                      Get.snackbar('Error', 'Please select at least one member',
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,);
-                      return;
-                    }
-                    memberSearchController.dispose();
-                    _createGroupWithUsers();
-                  },
-                  icon: controller!.isLoading.value
-                      ? SizedBox(
-                    width: 19,
-                    height: 19,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: CustomColors.purpleColor,
-                    ),
-                  )
-                      : Icon(Icons.group_add, color: CustomColors.darkGreenColor),
-                  label: Text(
-                    controller!.isLoading.value ? "Creating..." : "Create Group",
-                    style: boldStyle.copyWith(
-                      fontSize: Dimensions.fontSizeExtraLarge,
-                      color: CustomColors.darkGreenColor,
-                    ),
-                  ),
-                )),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CustomColors.greenColor,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: controller!.isLoading.value
+                          ? null
+                          : () {
+                              if (controller!.groupName.value.trim().isEmpty) {
+                                Get.snackbar(
+                                  'Error',
+                                  'Please enter a group name',
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                                return;
+                              }
+                              if (controller!.selectedMembers.isEmpty) {
+                                Get.snackbar(
+                                  'Error',
+                                  'Please select at least one member',
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                                return;
+                              }
+                              memberSearchController.dispose();
+                              _createGroupWithUsers();
+                            },
+                      icon: controller!.isLoading.value
+                          ? SizedBox(
+                              width: 19,
+                              height: 19,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: CustomColors.purpleColor,
+                              ),
+                            )
+                          : Icon(Icons.group_add,
+                              color: CustomColors.darkGreenColor),
+                      label: Text(
+                        controller!.isLoading.value
+                            ? "Creating..."
+                            : "Create Group",
+                        style: boldStyle.copyWith(
+                          fontSize: Dimensions.fontSizeExtraLarge,
+                          color: CustomColors.darkGreenColor,
+                        ),
+                      ),
+                    )),
                 const SizedBox(height: 20),
               ],
             );
@@ -2771,8 +2806,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
-
-  Widget _buildUserImage(String? imageUrl, {double width = 48, double height = 48}) {
+  Widget _buildUserImage(String? imageUrl,
+      {double width = 48, double height = 48}) {
     print('🖼️ Building user image with URL: $imageUrl');
 
     // Handle different image URL formats
@@ -2802,7 +2837,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                     strokeWidth: 2,
                     color: CustomColors.purpleColor,
                     value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
                         : null,
                   ),
                 ),
@@ -2880,6 +2916,4 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       fit: BoxFit.cover,
     );
   }
-
-
 }
