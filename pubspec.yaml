@@ -1,11 +1,11 @@
 name: lupus_care
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.2 <4.0.0'
+  sdk: ">=3.0.2 <4.0.0"
 
 dependencies:
   flutter:
@@ -16,24 +16,23 @@ dependencies:
   firebase_auth: ^4.20.0
   cloud_firestore: ^4.17.0
   firebase_storage: ^11.7.0
-#  flutter_local_notifications: ^15.1.2
+  #  flutter_local_notifications: ^15.1.2
   firebase_messaging: ^14.7.9
   cloud_functions: ^4.6.0
   in_app_purchase: ^3.1.11
   in_app_purchase_android: ^0.3.0+15
   in_app_purchase_storekit: ^0.3.8+1
   image_cropper: ^9.1.0
-#  purchases_flutter: ^7.0.0
+  #  purchases_flutter: ^7.0.0
   google_sign_in: ^6.1.5
   connectivity_plus: ^6.0.5
-
 
   # Your existing dependencies
   cached_network_image: ^3.2.3
   emoji_picker_flutter: ^2.2.0
   flutter_notification_channel: ^3.1.0
   gallery_saver_plus: ^3.2.1
-  lottie: ^3.2.0
+  lottie: ^2.7.0
   google_generative_ai: ^0.4.3
   http: ^1.4.0
   http_parser: ^4.0.2
@@ -56,7 +55,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^3.0.1
 
 flutter_launcher_icons:
   android: true
