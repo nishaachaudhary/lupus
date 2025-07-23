@@ -1,4 +1,4 @@
-// ignore_for_file: unused_field, avoid_print, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, unused_local_variable, unnecessary_null_comparison, avoid_unnecessary_containers
+// ignore_for_file: unused_field, avoid_print, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, unused_local_variable, avoid_unnecessary_containers, use_super_parameters, unnecessary_null_comparison
 
 import 'dart:convert';
 import 'dart:typed_data';
@@ -1501,24 +1501,42 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
   // CRITICAL: Enhanced send message method with membership check
   void _handleSendMessage() {
-    // FIRST CHECK: Double-check membership for group chats before sending
+    print('📤 Handle send message called');
+
+    // Group membership validation
     if (widget.chat.isGroup && !_isUserStillMember) {
       _showMembershipRestrictedDialog();
       return;
     }
 
-    if (textController.text.trim().isNotEmpty) {
-      controller.messageText.value = textController.text;
-      controller.sendMessage();
-      textController.clear();
-
-      // Hide emoji keyboard after sending
-      if (isEmojiVisible) {
-        setState(() {
-          isEmojiVisible = false;
-        });
-      }
+    final messageContent = textController.text.trim();
+    if (messageContent.isEmpty) {
+      print('❌ Empty message content');
+      return;
     }
+
+    print('✅ Message validation passed');
+    print('📝 Message content: $messageContent');
+
+    // ✅ Set chat context in controller (IMPORTANT)
+    controller.currentChat.value = widget.chat;
+    controller.currentChatId = widget.chat.id;
+
+    // ✅ Set message
+    controller.messageText.value = messageContent;
+
+    // Clear input field
+    textController.clear();
+
+    // Hide emoji keyboard
+    if (isEmojiVisible) {
+      setState(() {
+        isEmojiVisible = false;
+      });
+    }
+
+    // ✅ Finally send the message
+    controller.sendMessageWithApiNotifications();
   }
 
   // CRITICAL: New method for restricted message input
@@ -2617,23 +2635,27 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
     focusNode = FocusNode();
     _scrollController = ScrollController();
 
-    // Load messages for this chat
+    // ✅ Set active chat context
+    controller.currentChat.value = widget.chat;
+    controller.currentChatId = widget.chat.id;
+
+    // ✅ Load messages
     controller.loadMessages(widget.chat.id);
 
-    // UPDATED: Mark messages as read when entering chat with better timing
-    if (controller.currentUserId != null) {
+    // ✅ Only mark messages as read if chat is not temporary
+    if (!widget.chat.isTemporary && controller.currentUserId != null) {
       Future.delayed(Duration(milliseconds: 1500), () {
         controller.markMessagesAsRead(
             widget.chat.id, controller.currentUserId!);
       });
     }
 
-    // Check group membership for group chats
+    // ✅ Check membership
     if (widget.chat.isGroup) {
       _checkGroupMembership();
     }
 
-    // Scroll to bottom after messages load
+    // ✅ Scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 

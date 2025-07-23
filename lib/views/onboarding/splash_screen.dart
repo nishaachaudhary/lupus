@@ -31,7 +31,6 @@ class _SplashScreenState extends State<SplashScreen> {
       print('🎬 Lupus Care Splash Screen started');
       print('⏰ Displaying splash for 5 seconds...');
 
-
       await Future.delayed(Duration(seconds: 40));
 
       print('⏰ 5-second splash delay completed, navigating to initializer...');
@@ -42,7 +41,6 @@ class _SplashScreenState extends State<SplashScreen> {
       } else {
         print('⚠️ Widget unmounted or already navigated, skipping navigation');
       }
-
     } catch (e) {
       print('❌ Error in splash navigation: $e');
       // Fallback to initializer if there's an error
@@ -99,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 children: [
                   // Company logo with hero animation for smoother transition
                   Hero(
-                    tag: 'company_logo',
+                    tag: 'company_logo_login', // or 'company_logo_home', etc.
                     child: Image.asset(
                       CustomImage.companyLogo,
                       height: 205,
@@ -107,7 +105,6 @@ class _SplashScreenState extends State<SplashScreen> {
                       fit: BoxFit.contain,
                     ),
                   ),
-
                   // Loading indicator with animation
                   SizedBox(height: 40),
                   SizedBox(
@@ -116,8 +113,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white.withOpacity(0.7)
-                      ),
+                          Colors.white.withOpacity(0.7)),
                     ),
                   ),
 

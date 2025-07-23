@@ -26,16 +26,15 @@ class ChatTile extends StatelessWidget {
     return avatars[index];
   }
 
-  String _getLastMessagePreview(String lastMessage, bool isGroup, String? senderId, String? currentUserId) {
+  String _getLastMessagePreview(String lastMessage, bool isGroup,
+      String? senderId, String? currentUserId) {
     // if (lastMessage.isEmpty) {
     //   return isGroup ? 'Group created' : 'Chat started';
     // }
 
     // Handle different message types
     if (lastMessage.startsWith('📷')) {
-      return isGroup && senderId != currentUserId
-          ? 'Photo'
-          : lastMessage;
+      return isGroup && senderId != currentUserId ? 'Photo' : lastMessage;
     }
 
     // Truncate long messages
@@ -107,67 +106,69 @@ class ChatTile extends StatelessWidget {
             // Avatar
             chat.isGroup
                 ? Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: CustomColors.lightPurpleColor,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Image.asset(
-                    CustomImage.userGroup,
-                    width: 24,
-                    height: 24,
-                  ),
-                ),
-              ),
-            )
-                : CircleAvatar(
-              radius: 24,
-              child: ClipOval(
-                child: displayAvatar != null && displayAvatar.startsWith('http')
-                    ? Image.network(
-                  displayAvatar,
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      _getAvatar(displayName),
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      width: 48,
-                      height: 48,
-                      color: Colors.grey[300],
-                      child: Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: CustomColors.purpleColor,
-                          ),
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: CustomColors.lightPurpleColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Image.asset(
+                          CustomImage.userGroup,
+                          width: 24,
+                          height: 24,
                         ),
                       ),
-                    );
-                  },
-                )
-                    : Image.asset(
-                  displayAvatar ?? _getAvatar(displayName),
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
+                    ),
+                  )
+                : CircleAvatar(
+                    radius: 24,
+                    child: ClipOval(
+                      child: displayAvatar != null &&
+                              displayAvatar.startsWith('http')
+                          ? Image.network(
+                              displayAvatar,
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  _getAvatar(displayName),
+                                  width: 48,
+                                  height: 48,
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  width: 48,
+                                  height: 48,
+                                  color: Colors.grey[300],
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: CustomColors.purpleColor,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              displayAvatar ?? _getAvatar(displayName),
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                  ),
 
             // Online indicator for direct chats
             if (!chat.isGroup && _isUserOnline(currentUserId))
@@ -223,7 +224,8 @@ class ChatTile extends StatelessWidget {
                 displayName,
                 style: mediumStyle.copyWith(
                   fontSize: Dimensions.fontSizeLarge,
-                  fontWeight: unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
+                  fontWeight:
+                      unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -235,7 +237,8 @@ class ChatTile extends StatelessWidget {
                 color: unreadCount > 0
                     ? CustomColors.purpleColor
                     : Colors.grey[500],
-                fontWeight: unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
+                fontWeight:
+                    unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],
@@ -274,7 +277,8 @@ class ChatTile extends StatelessWidget {
                 style: regularStyle.copyWith(
                   fontSize: Dimensions.fontSizeDefault,
                   color: unreadCount > 0 ? Colors.black87 : Colors.grey[600],
-                  fontWeight: unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
+                  fontWeight:
+                      unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -298,7 +302,7 @@ class ChatTile extends StatelessWidget {
 
     // Find the other participant
     final otherParticipantId = chat.participants.firstWhere(
-          (id) => id != currentUserId,
+      (id) => id != currentUserId,
       orElse: () => '',
     );
 
@@ -353,31 +357,32 @@ class ChatTile extends StatelessWidget {
                 // Avatar
                 chat.isGroup
                     ? Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: CustomColors.lightPurpleColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Image.asset(
-                      CustomImage.userGroup,
-                      width: 25,
-                      height: 25,
-                    ),
-                  ),
-                )
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: CustomColors.lightPurpleColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Image.asset(
+                            CustomImage.userGroup,
+                            width: 25,
+                            height: 25,
+                          ),
+                        ),
+                      )
                     : CircleAvatar(
-                  radius: 25,
-                  child: ClipOval(
-                    child: Image.asset(
-                      _getAvatar(chat.getDisplayName(Get.find<ChatController>().currentUserId)),
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
+                        radius: 25,
+                        child: ClipOval(
+                          child: Image.asset(
+                            _getAvatar(chat.getDisplayName(
+                                Get.find<ChatController>().currentUserId)),
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                 const SizedBox(width: 16),
 
                 // Chat details
@@ -386,7 +391,8 @@ class ChatTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        chat.getDisplayName(Get.find<ChatController>().currentUserId),
+                        chat.getDisplayName(
+                            Get.find<ChatController>().currentUserId),
                         style: mediumStyle.copyWith(
                           fontSize: Dimensions.fontSizeLarge,
                         ),
@@ -401,12 +407,14 @@ class ChatTile extends StatelessWidget {
                         )
                       else
                         Text(
-                          _isUserOnline(Get.find<ChatController>().currentUserId)
+                          _isUserOnline(
+                                  Get.find<ChatController>().currentUserId)
                               ? 'Online'
                               : 'Last seen recently',
                           style: regularStyle.copyWith(
                             fontSize: Dimensions.fontSizeDefault,
-                            color: _isUserOnline(Get.find<ChatController>().currentUserId)
+                            color: _isUserOnline(
+                                    Get.find<ChatController>().currentUserId)
                                 ? Colors.green
                                 : Colors.grey[600],
                           ),
@@ -434,7 +442,8 @@ class ChatTile extends StatelessWidget {
     final List<Widget> options = [];
 
     // Mark as read option (if there are unread messages)
-    final unreadCount = chat.getUnreadCountForUser(controller.currentUserId ?? '');
+    final unreadCount =
+        chat.getUnreadCountForUser(controller.currentUserId ?? '');
     if (unreadCount > 0) {
       options.add(
         _buildOptionTile(

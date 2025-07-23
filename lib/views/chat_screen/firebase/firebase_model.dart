@@ -1,8 +1,4 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-
 
 class AppUser {
   final String id;
@@ -123,7 +119,7 @@ class ParticipantInfo {
 }
 
 class Chat {
-  final String id;
+  late final String id;
   final String name;
   final List<String> participants;
   final bool isGroup;
@@ -138,8 +134,7 @@ class Chat {
   final String? apiGroupId; // Add this property to link with API groups
   final String? groupImage; // Add this for group image support
   final Map<String, dynamic>? groupData;
-  final bool isTemporary;
-
+  late final bool isTemporary;
 
   Chat({
     required this.id,
@@ -157,7 +152,7 @@ class Chat {
     this.apiGroupId, // Add to constructor
     this.groupImage,
     this.isTemporary = false,
-    this.groupData,// Add to constructor
+    this.groupData, // Add to constructor
   })  : createdAt = createdAt ?? DateTime.now(),
         lastMessageTimestamp = lastMessageTimestamp ?? DateTime.now();
 
@@ -167,7 +162,8 @@ class Chat {
 
     // Parse participant details
     Map<String, ParticipantInfo> participantDetails = {};
-    final participantDetailsData = data['participantDetails'] as Map<String, dynamic>? ?? {};
+    final participantDetailsData =
+        data['participantDetails'] as Map<String, dynamic>? ?? {};
     participantDetailsData.forEach((key, value) {
       if (value is Map<String, dynamic>) {
         participantDetails[key] = ParticipantInfo.fromFirestore(value, key);
@@ -176,7 +172,8 @@ class Chat {
 
     // Parse unread counts
     Map<String, int> unreadCounts = {};
-    final unreadCountsData = data['unreadCounts'] as Map<String, dynamic>? ?? {};
+    final unreadCountsData =
+        data['unreadCounts'] as Map<String, dynamic>? ?? {};
     unreadCountsData.forEach((key, value) {
       unreadCounts[key] = value is int ? value : 0;
     });
@@ -190,7 +187,8 @@ class Chat {
       createdBy: data['createdBy'] ?? '',
       createdAt: (data['createdAt'] as DateTime?) ?? DateTime.now(),
       lastMessage: data['lastMessage'] ?? '',
-      lastMessageTimestamp: (data['lastMessageTimestamp'] as DateTime?) ?? DateTime.now(),
+      lastMessageTimestamp:
+          (data['lastMessageTimestamp'] as DateTime?) ?? DateTime.now(),
       lastMessageSender: data['lastMessageSender'] ?? '',
       participantDetails: participantDetails,
       unreadCounts: unreadCounts,
@@ -231,11 +229,12 @@ class Chat {
 
     // For direct chats, find the other participant
     final otherParticipantId = participants.firstWhere(
-          (id) => id != currentUserId,
+      (id) => id != currentUserId,
       orElse: () => participants.isNotEmpty ? participants.first : '',
     );
 
-    if (otherParticipantId.isNotEmpty && participantDetails.containsKey(otherParticipantId)) {
+    if (otherParticipantId.isNotEmpty &&
+        participantDetails.containsKey(otherParticipantId)) {
       return participantDetails[otherParticipantId]!.name;
     }
 
@@ -251,11 +250,12 @@ class Chat {
 
     // For direct chats, find the other participant
     final otherParticipantId = participants.firstWhere(
-          (id) => id != currentUserId,
+      (id) => id != currentUserId,
       orElse: () => participants.isNotEmpty ? participants.first : '',
     );
 
-    if (otherParticipantId.isNotEmpty && participantDetails.containsKey(otherParticipantId)) {
+    if (otherParticipantId.isNotEmpty &&
+        participantDetails.containsKey(otherParticipantId)) {
       final avatar = participantDetails[otherParticipantId]!.avatar;
       return avatar.isNotEmpty ? avatar : null;
     }
@@ -278,11 +278,12 @@ class Chat {
     if (isGroup) return false;
 
     final otherParticipantId = participants.firstWhere(
-          (id) => id != currentUserId,
+      (id) => id != currentUserId,
       orElse: () => '',
     );
 
-    if (otherParticipantId.isNotEmpty && participantDetails.containsKey(otherParticipantId)) {
+    if (otherParticipantId.isNotEmpty &&
+        participantDetails.containsKey(otherParticipantId)) {
       return participantDetails[otherParticipantId]!.isOnline;
     }
 
@@ -302,8 +303,9 @@ class Chat {
     String? lastMessageSender,
     Map<String, ParticipantInfo>? participantDetails,
     Map<String, int>? unreadCounts,
-    String? apiGroupId, // Add this parameter
-    String? groupImage, // Add this parameter
+    String? apiGroupId,
+    String? groupImage,
+    bool? isTemporary, // ✅ Add this line
   }) {
     return Chat(
       id: id ?? this.id,
@@ -318,8 +320,9 @@ class Chat {
       lastMessageSender: lastMessageSender ?? this.lastMessageSender,
       participantDetails: participantDetails ?? this.participantDetails,
       unreadCounts: unreadCounts ?? this.unreadCounts,
-      apiGroupId: apiGroupId ?? this.apiGroupId, // Add this line
-      groupImage: groupImage ?? this.groupImage, // Add this line
+      apiGroupId: apiGroupId ?? this.apiGroupId,
+      groupImage: groupImage ?? this.groupImage,
+      isTemporary: isTemporary ?? this.isTemporary, // ✅ Add this
     );
   }
 
@@ -337,8 +340,6 @@ class Chat {
     return 'Chat(id: $id, name: $name, isGroup: $isGroup, participants: ${participants.length}, apiGroupId: $apiGroupId)';
   }
 }
-
-
 
 enum MessageType {
   text,
@@ -369,7 +370,6 @@ class ChatMessage {
   final DateTime? sentAt;
   final List<String> deliveredTo;
 
-
   ChatMessage({
     required this.id,
     required this.chatId,
@@ -389,9 +389,7 @@ class ChatMessage {
     this.replyToMessageId,
     this.deliveredTo = const [],
     this.readBy = const [],
-
   });
-
 
   bool get hasMedia {
     return type == MessageType.image ||
@@ -404,14 +402,11 @@ class ChatMessage {
         fileUrl != null;
   }
 
-
   bool isDeliveredTo(String userId) => deliveredTo.contains(userId);
 
   bool isReadBy(String userId) => readBy.contains(userId);
 
-
   bool get isImageMessage => type == MessageType.image;
-
 
   bool get isVideoMessage => type == MessageType.video;
 
@@ -447,7 +442,8 @@ class ChatMessage {
   String? getImageUrl() {
     // First check the dedicated imageUrl field
     if (imageUrl != null && imageUrl!.isNotEmpty) {
-      print('✅ Found imageUrl: ${imageUrl!.length > 50 ? "${imageUrl!.substring(0, 50)}..." : imageUrl}');
+      print(
+          '✅ Found imageUrl: ${imageUrl!.length > 50 ? "${imageUrl!.substring(0, 50)}..." : imageUrl}');
       return imageUrl;
     }
 
@@ -627,21 +623,24 @@ class ChatMessage {
     );
   }
 
-  MessageStatus getMessageStatus(String currentUserId, List<String> chatParticipants) {
+  MessageStatus getMessageStatus(
+      String currentUserId, List<String> chatParticipants) {
     // Don't show status for messages from others
     if (senderId != currentUserId) {
       return MessageStatus.sent; // Default for non-current user messages
     }
 
     // Get other participants (excluding current user)
-    final otherParticipants = chatParticipants.where((id) => id != currentUserId).toList();
+    final otherParticipants =
+        chatParticipants.where((id) => id != currentUserId).toList();
 
     if (otherParticipants.isEmpty) {
       return MessageStatus.sent; // No other participants
     }
 
     // Check if all other participants have read the message
-    bool allRead = otherParticipants.every((participantId) => readBy.contains(participantId));
+    bool allRead = otherParticipants
+        .every((participantId) => readBy.contains(participantId));
 
     if (allRead) {
       return MessageStatus.read; // Blue double tick
@@ -651,9 +650,8 @@ class ChatMessage {
     // For simplicity, we'll consider a message delivered if it's been sent and has timestamp
     // In a more complex system, you might track delivery separately
     bool isDelivered = otherParticipants.any((participantId) =>
-    readBy.contains(participantId) ||
-        timestamp.isBefore(DateTime.now().subtract(Duration(seconds: 5)))
-    );
+        readBy.contains(participantId) ||
+        timestamp.isBefore(DateTime.now().subtract(Duration(seconds: 5))));
 
     if (isDelivered) {
       return MessageStatus.delivered; // Double tick
@@ -664,18 +662,21 @@ class ChatMessage {
 
   // Check if message is read by all participants (excluding sender)
   bool isReadByAll(String currentUserId, List<String> chatParticipants) {
-    final otherParticipants = chatParticipants.where((id) => id != currentUserId).toList();
-    return otherParticipants.every((participantId) => readBy.contains(participantId));
+    final otherParticipants =
+        chatParticipants.where((id) => id != currentUserId).toList();
+    return otherParticipants
+        .every((participantId) => readBy.contains(participantId));
   }
 
   // Check if message is delivered to any participant
   bool isDelivered(String currentUserId, List<String> chatParticipants) {
-    final otherParticipants = chatParticipants.where((id) => id != currentUserId).toList();
+    final otherParticipants =
+        chatParticipants.where((id) => id != currentUserId).toList();
     return otherParticipants.any((participantId) =>
-    readBy.contains(participantId) ||
-        timestamp.isBefore(DateTime.now().subtract(Duration(seconds: 5)))
-    );
+        readBy.contains(participantId) ||
+        timestamp.isBefore(DateTime.now().subtract(Duration(seconds: 5))));
   }
+
   // Convert to compatible map format (for legacy compatibility)
   Map<String, dynamic> toCompatibleMap(String currentUserId) {
     return {
@@ -694,8 +695,10 @@ class ChatMessage {
       if (audioUrl != null) 'audioUrl': audioUrl,
       if (fileUrl != null) 'fileUrl': fileUrl,
       if (fileName != null) 'fileName': fileName,
-      if (fileSize != null) 'fileSize': fileSize, // ADD: Include in compatible map
-      if (mimeType != null) 'mimeType': mimeType, // ADD: Include in compatible map
+      if (fileSize != null)
+        'fileSize': fileSize, // ADD: Include in compatible map
+      if (mimeType != null)
+        'mimeType': mimeType, // ADD: Include in compatible map
       if (replyToMessageId != null) 'replyToMessageId': replyToMessageId,
       'readBy': readBy,
     };
@@ -748,7 +751,8 @@ class ChatMessage {
 
 // Extension for message list operations
 extension MessageListExtensions on List<ChatMessage> {
-  List<ChatMessage> get unreadMessages => where((msg) => msg.readBy.isEmpty).toList();
+  List<ChatMessage> get unreadMessages =>
+      where((msg) => msg.readBy.isEmpty).toList();
   List<ChatMessage> get mediaMessages => where((msg) => msg.hasMedia).toList();
 
   List<ChatMessage> fromSender(String senderId) =>
@@ -794,8 +798,8 @@ extension MessageListExtensions on List<ChatMessage> {
     final yesterday = DateTime(now.year, now.month, now.day - 1);
     final today = DateTime(now.year, now.month, now.day);
     return where((msg) =>
-    msg.timestamp.isAfter(yesterday) &&
-        msg.timestamp.isBefore(today)).toList();
+            msg.timestamp.isAfter(yesterday) && msg.timestamp.isBefore(today))
+        .toList();
   }
 
   // Get messages from last week
@@ -878,16 +882,17 @@ extension ChatListExtensions on List<Chat> {
   List<Chat> searchByName(String query) {
     final lowerQuery = query.toLowerCase();
     return where((chat) =>
-    chat.name.toLowerCase().contains(lowerQuery) ||
+        chat.name.toLowerCase().contains(lowerQuery) ||
         chat.participants.any((participant) =>
-        chat.participantDetails[participant]?.name.toLowerCase().contains(lowerQuery) ?? false
-        )
-    ).toList();
+            chat.participantDetails[participant]?.name
+                .toLowerCase()
+                .contains(lowerQuery) ??
+            false)).toList();
   }
 }
-enum MessageStatus {
-  sent,      // Single tick - Message sent successfully
-  delivered, // Double tick - Message delivered but not read by all
-  read,      // Blue double tick - Message read by all recipients
-}
 
+enum MessageStatus {
+  sent, // Single tick - Message sent successfully
+  delivered, // Double tick - Message delivered but not read by all
+  read, // Blue double tick - Message read by all recipients
+}

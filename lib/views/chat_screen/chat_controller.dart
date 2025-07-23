@@ -1,5 +1,5 @@
 // lib/controllers/chat_controller.dart
-// ignore_for_file: unused_field, prefer_const_constructors, avoid_print, unused_element, prefer_is_not_operator, unused_local_variable, division_optimization, unnecessary_cast
+// ignore_for_file: prefer_const_constructors, avoid_print, unused_local_variable, prefer_is_not_operator, unused_field, unused_element, use_rethrow_when_possible, unnecessary_cast, division_optimization
 
 import 'dart:async';
 import 'dart:convert';
@@ -17,6 +17,7 @@ import 'package:lupus_care/constant/images.dart';
 import 'package:lupus_care/helper/storage_service.dart';
 import 'package:lupus_care/views/chat_screen/firebase/firebase_chat_service.dart';
 import 'package:lupus_care/views/chat_screen/firebase/firebase_model.dart';
+import 'package:lupus_care/views/chat_screen/notification_api_service.dart';
 import 'package:lupus_care/views/chat_screen/notification_service.dart';
 import 'package:lupus_care/views/group_chat/group_chat_controller.dart';
 
@@ -95,23 +96,43 @@ class ChatController extends GetxController {
   String? _consistentUserId;
 
   @override
+  @override
   void onInit() {
     super.onInit();
-    print('🎮 ChatController.onInit() called with enhanced real-time support');
+    print('🎮 ChatController.onInit() called');
 
     isInitialSetup.value = true;
     startOnlineStatusUpdates();
 
     _initTimer = Timer(Duration(milliseconds: 500), () {
-      _initializeNotificationService().then((_) {
-        // USE ENHANCED INITIALIZATION
-        initializeWithEnhancedRealTime().then((_) {
-          Future.delayed(Duration(milliseconds: 1000), () {
-            markInitialSetupComplete();
+      // ENSURE NotificationService is initialized FIRST
+      _ensureNotificationServiceRegistration().then((_) {
+        _initializeNotificationService().then((_) {
+          initializeWithEnhancedRealTime().then((_) {
+            Future.delayed(Duration(milliseconds: 1000), () {
+              markInitialSetupComplete();
+            });
           });
         });
       });
     });
+  }
+
+// NEW: Ensure NotificationService is registered
+  Future<void> _ensureNotificationServiceRegistration() async {
+    try {
+      if (!Get.isRegistered<NotificationService>()) {
+        print('⚠️ NotificationService not registered, creating now...');
+        final notificationService = NotificationService();
+        await notificationService.onInit();
+        Get.put(notificationService, permanent: true);
+        print('✅ NotificationService registered successfully');
+      } else {
+        print('✅ NotificationService already registered');
+      }
+    } catch (e) {
+      print('❌ Error ensuring NotificationService registration: $e');
+    }
   }
 
   Future<void> initializeWithFullChatSupport() async {
@@ -328,23 +349,6 @@ class ChatController extends GetxController {
       print(
           '📨 Real-time update from $listenerType: ${snapshot.docs.length} chats');
 
-      // Process document changes to detect new chats
-      final newChatIds = <String>[];
-      final modifiedChatIds = <String>[];
-
-      for (var change in snapshot.docChanges) {
-        final chatId = change.doc.id;
-
-        if (change.type == DocumentChangeType.added) {
-          newChatIds.add(chatId);
-          print('➕ New chat detected: $chatId');
-        } else if (change.type == DocumentChangeType.modified) {
-          modifiedChatIds.add(chatId);
-          print('🔄 Chat modified: $chatId');
-        }
-      }
-
-      // Process all chats and update lists with deduplication
       final chats = <Chat>[];
       final processedChatIds = <String>{};
 
@@ -361,43 +365,531 @@ class ChatController extends GetxController {
           final data = doc.data() as Map<String, dynamic>;
 
           if (_validateEnhancedChatData(data, chatId)) {
-            // CRITICAL: Migrate chat if needed for consistency
-            final migratedData = await _migrateChatDataIfNeeded(chatId, data);
-            final chat =
-                _createChatFromFirestoreDataEnhanced(chatId, migratedData);
-            chats.add(chat);
+            // CRITICAL: Only process chats that have messages or are groups
+            final isGroup = data['isGroup'] == true;
+
+            if (isGroup) {
+              // Groups are always processed
+              final migratedData = await _migrateChatDataIfNeeded(chatId, data);
+              final chat =
+                  _createChatFromFirestoreDataEnhanced(chatId, migratedData);
+              chats.add(chat);
+            } else {
+              // For personal chats, check if they have messages
+              final hasMessages = await _chatHasMessages(chatId);
+
+              if (hasMessages) {
+                final migratedData =
+                    await _migrateChatDataIfNeeded(chatId, data);
+                final chat =
+                    _createChatFromFirestoreDataEnhanced(chatId, migratedData);
+                chats.add(chat);
+                print('✅ Added personal chat with messages: $chatId');
+              } else {
+                print('⚠️ Skipping personal chat without messages: $chatId');
+              }
+            }
           }
         } catch (e) {
           print('❌ Error parsing real-time chat ${doc.id}: $e');
         }
       }
 
-      print(
-          '✅ Processed ${chats.length} unique chats from $listenerType listener');
-
-      // CRITICAL: Force update the chat lists immediately
+      // Force update the chat lists
       _forceUpdateChatListsWithDeduplication(chats);
-
-      // If there were new chats, trigger special handling
-      if (newChatIds.isNotEmpty) {
-        print('🔔 Handling ${newChatIds.length} new chats');
-        _handleNewChatsDetected(newChatIds);
-      }
-
-      // If there were modifications, ensure UI updates
-      if (modifiedChatIds.isNotEmpty || newChatIds.isNotEmpty) {
-        print('🔄 Triggering UI refresh due to chat changes');
-        Future.delayed(Duration(milliseconds: 200), () {
-          refreshChatListUI();
-          update();
-        });
-      }
     } catch (e) {
       print('❌ Error handling real-time update: $e');
     }
   }
 
-// 4. CRITICAL: Migrate chat data if needed for user ID consistency
+  Future<String?> findExistingPersonalChatWithMessages(String apiUserId) async {
+    try {
+      print(
+          '🔍 Looking for existing personal chat with messages for API user: $apiUserId');
+
+      if (_consistentUserId == null) return null;
+
+      final otherUserConsistentId = 'app_user_$apiUserId';
+
+      // Search in Firebase for existing chat
+      final existingChatQuery = await FirebaseFirestore.instance
+          .collection('chats')
+          .where('participants', arrayContains: _consistentUserId!)
+          .where('isGroup', isEqualTo: false)
+          .get();
+
+      for (var doc in existingChatQuery.docs) {
+        final docParticipants =
+            List<String>.from(doc.data()['participants'] ?? []);
+
+        // Check if this chat contains both users
+        if (docParticipants.contains(_consistentUserId!) &&
+            (docParticipants.contains(otherUserConsistentId) ||
+                docParticipants.contains(apiUserId))) {
+          // CRITICAL: Check if chat has any messages
+          final messagesSnapshot = await FirebaseFirestore.instance
+              .collection('chats')
+              .doc(doc.id)
+              .collection('messages')
+              .limit(1)
+              .get();
+
+          if (messagesSnapshot.docs.isNotEmpty) {
+            print('✅ Found existing chat with messages: ${doc.id}');
+            return doc.id;
+          } else {
+            print('⚠️ Found chat without messages, ignoring: ${doc.id}');
+          }
+        }
+      }
+
+      print('❌ No existing chat with messages found');
+      return null;
+    } catch (e) {
+      print('❌ Error finding existing personal chat with messages: $e');
+      return null;
+    }
+  }
+
+  Future<bool> _chatHasMessages(String chatId) async {
+    try {
+      final messagesSnapshot = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .limit(1)
+          .get();
+
+      return messagesSnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('❌ Error checking if chat has messages: $e');
+      return false; // Default to false for safety
+    }
+  }
+
+  String getOtherUserId(Chat chat) {
+    return chat.participants.firstWhere((id) => id != currentUserId);
+  }
+
+  Future<void> sendMessageWithApiNotifications() async {
+    print('🧪 currentChat: ${currentChat.value}');
+    print('🧪 currentChatId: $currentChatId');
+
+    final trimmedMessage = messageText.value.trim();
+    if (trimmedMessage.isEmpty || currentChat.value == null) {
+      print('❌ Empty message or chat context missing');
+      return;
+    }
+
+    messageText.value = ''; // Clear input field immediately
+
+    try {
+      print('📤 Sending message with API notifications...');
+      isSendingMessage.value = true;
+
+      var chat = currentChat.value!;
+
+      // 🔧 STEP 0: If chat is temporary, create Firebase chat first
+      if (chat.isTemporary == true ||
+          currentChatId?.startsWith('temp_') == true) {
+        print('🛠 Temporary chat detected — creating Firebase chat...');
+
+        final otherUserId = getOtherUserId(chat);
+        final otherUserName =
+            chat.participantDetails[otherUserId]?.name ?? 'User';
+
+        final firebaseChatId = await createPersonalChatEnhanced(
+          otherUserId,
+          otherUserName,
+        );
+
+        if (firebaseChatId == null) {
+          print('❌ Firebase chat creation failed. Aborting...');
+          Get.snackbar(
+            'Error',
+            'Unable to start chat. Please try again.',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          return;
+        }
+
+        // ✅ Replace with updated chat object using copyWith
+        print('✅ Firebase chat created: $firebaseChatId');
+
+        final updatedChat = chat.copyWith(
+          id: firebaseChatId,
+          isTemporary: false,
+        );
+
+        currentChat.value = updatedChat;
+        currentChatId = firebaseChatId;
+        currentChat.refresh();
+
+        // Add to personal chat list if not already there
+        if (!personalChats.any((c) => c.id == firebaseChatId)) {
+          personalChats.insert(0, updatedChat);
+          personalChats.refresh();
+        }
+
+        chat = updatedChat; // Now `chat` refers to updated one
+      }
+
+      final chatId = currentChatId!;
+
+      // 📝 STEP 1: Create ChatMessage object
+      final chatMessage = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        chatId: chatId,
+        senderId: currentUserId ?? 'unknown',
+        senderName: currentUserName ?? 'Unknown User',
+        text: trimmedMessage,
+        timestamp: DateTime.now(),
+        type: MessageType.text,
+        readBy: [currentUserId ?? ''],
+      );
+
+      // 💬 STEP 2: Optimistically show message in UI
+      currentMessages.add(chatMessage);
+      currentMessages.refresh();
+
+      // ⏩ STEP 3: Update local chat preview
+      await _updateLocalChatImmediately(chatId, trimmedMessage);
+
+      // 📤 STEP 4: Send to Firestore
+      await _sendMessageToFirestore(chatMessage);
+
+      // 🔔 STEP 5: Send API/Push Notification
+      await _sendApiNotificationsForMessage(chatMessage);
+
+      print('✅ Message sent successfully via enhanced flow');
+    } catch (e) {
+      print('❌ Error sending message: $e');
+
+      // ❌ Rollback optimistic UI message
+      currentMessages.removeWhere((msg) =>
+          msg.text == trimmedMessage &&
+          msg.senderId == currentUserId &&
+          msg.timestamp.difference(DateTime.now()).inSeconds.abs() < 5);
+      currentMessages.refresh();
+
+      Get.snackbar(
+        'Error',
+        'Failed to send message: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isSendingMessage.value = false;
+    }
+  }
+
+  /// Send API notifications for a message
+  Future<void> _sendApiNotificationsForMessage(ChatMessage message) async {
+    try {
+      if (currentChat.value == null || _consistentUserId == null) {
+        print('⚠️ No current chat or user ID for API notifications');
+        return;
+      }
+
+      print('📡 Sending API notifications for message...');
+
+      final chat = currentChat.value!;
+      final isGroupChat = chat.isGroup;
+
+      if (isGroupChat) {
+        // Send group chat notification
+        await _sendGroupChatApiNotification(message, chat);
+      } else {
+        // Send personal chat notification
+        await _sendPersonalChatApiNotification(message, chat);
+      }
+    } catch (e) {
+      print('❌ Error sending API notifications: $e');
+      // Don't throw error here as the message was already sent successfully
+    }
+  }
+
+  /// Send group chat API notification
+  Future<void> _sendGroupChatApiNotification(
+      ChatMessage message, Chat chat) async {
+    try {
+      print('👥 Sending group chat API notification...');
+
+      // Extract API group ID
+      String? apiGroupId;
+
+      // Try to get API group ID from various sources
+      if (chat.apiGroupId != null && chat.apiGroupId!.isNotEmpty) {
+        apiGroupId = chat.apiGroupId;
+      } else {
+        // Try to extract from chat ID or other sources
+        apiGroupId = chat.id;
+      }
+
+      if (apiGroupId == null || apiGroupId.isEmpty) {
+        print('❌ Could not determine API group ID for notification');
+        return;
+      }
+
+      // Extract API sender ID (remove 'app_user_' prefix if present)
+      final apiSenderId =
+          NotificationApiService.extractApiUserId(_consistentUserId!);
+
+      print('   API Sender ID: $apiSenderId');
+      print('   API Group ID: $apiGroupId');
+      print('   Message: ${message.text}');
+
+      // Send group notification via API
+      final result = await NotificationApiService.sendGroupChatNotification(
+        senderId: apiSenderId,
+        groupId: apiGroupId,
+        message: message.text,
+      );
+
+      if (result['success'] == true) {
+        print('✅ Group chat API notification sent successfully');
+      } else {
+        print('❌ Group chat API notification failed: ${result['message']}');
+      }
+    } catch (e) {
+      print('❌ Error sending group chat API notification: $e');
+    }
+  }
+
+  /// Send personal chat API notification
+  Future<void> _sendPersonalChatApiNotification(
+      ChatMessage message, Chat chat) async {
+    try {
+      print('💬 Sending personal chat API notification...');
+
+      // Find the other participant (receiver)
+      String? otherParticipantId;
+      for (String participantId in chat.participants) {
+        if (participantId != _consistentUserId) {
+          otherParticipantId = participantId;
+          break;
+        }
+      }
+
+      if (otherParticipantId == null) {
+        print('❌ Could not find other participant for notification');
+        return;
+      }
+
+      // Extract API user IDs
+      final apiSenderId =
+          NotificationApiService.extractApiUserId(_consistentUserId!);
+      final apiReceiverId =
+          NotificationApiService.extractApiUserId(otherParticipantId);
+
+      print('   API Sender ID: $apiSenderId');
+      print('   API Receiver ID: $apiReceiverId');
+      print('   Message: ${message.text}');
+
+      // Send personal notification via API
+      final result = await NotificationApiService.sendChatNotification(
+        senderId: apiSenderId,
+        receiverId: apiReceiverId,
+        message: message.text,
+      );
+
+      if (result['success'] == true) {
+        print('✅ Personal chat API notification sent successfully');
+      } else {
+        print('❌ Personal chat API notification failed: ${result['message']}');
+      }
+    } catch (e) {
+      print('❌ Error sending personal chat API notification: $e');
+    }
+  }
+
+  /// Enhanced image sending with API notifications
+  Future<void> sendImageWithApiNotifications() async {
+    try {
+      print('📷 Sending image with API notifications...');
+
+      final XFile? image = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 60,
+        maxWidth: 800,
+        maxHeight: 800,
+      );
+
+      if (image != null) {
+        isSendingMessage.value = true;
+
+        // Process and send image as base64
+        await _processAndSendImageWithApiNotifications(File(image.path));
+      }
+    } catch (e) {
+      print('❌ Error sending image with API notifications: $e');
+      Get.snackbar('Error', 'Failed to send image: ${e.toString()}',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+  /// Process and send image with API notifications
+  Future<void> _processAndSendImageWithApiNotifications(File imageFile) async {
+    try {
+      if (currentChatId == null || currentChatId!.isEmpty) {
+        throw Exception('No active chat selected');
+      }
+
+      if (!await imageFile.exists()) {
+        throw Exception('Image file not found');
+      }
+
+      final Uint8List imageBytes = await imageFile.readAsBytes();
+      if (imageBytes.length > 800000) {
+        throw Exception(
+            'Image too large (${(imageBytes.length / 1024).toInt()}KB). Please choose a smaller image.');
+      }
+
+      final String base64Image = base64Encode(imageBytes);
+      final String imageDataUri = 'data:image/jpeg;base64,$base64Image';
+
+      // Create message with image
+      final message = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        chatId: currentChatId!,
+        senderId: currentUserId ?? 'unknown',
+        senderName: currentUserName ?? 'Unknown User',
+        text: '📷 Image',
+        timestamp: DateTime.now(),
+        type: MessageType.image,
+        imageUrl: imageDataUri,
+        readBy: [currentUserId ?? ''],
+        fileSize: imageBytes.length,
+        mimeType: 'image/jpeg',
+      );
+
+      // Add to local messages
+      currentMessages.add(message);
+      currentMessages.refresh();
+
+      // Send to Firestore
+      await _sendMessageToFirestore(message);
+
+      // Update local chat
+      await _updateLocalChatAfterMessage(currentChatId!, '📷 Image');
+
+      // Send API notifications for image
+      await _sendApiNotificationsForMessage(message);
+
+      print('✅ Image sent with API notifications successfully');
+
+      Get.snackbar(
+        'Success',
+        'Image sent successfully',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: Duration(seconds: 2),
+      );
+    } catch (e) {
+      print('❌ Error processing image with API notifications: $e');
+
+      String userMessage = 'Failed to send image';
+      if (e.toString().contains('too large')) {
+        userMessage = e.toString();
+      } else if (e.toString().contains('No active chat')) {
+        userMessage = 'Please select a chat first';
+      } else if (e.toString().contains('not found')) {
+        userMessage = 'Image file not found. Please try again.';
+      }
+
+      Get.snackbar('Error', userMessage,
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isSendingMessage.value = false;
+    }
+  }
+
+  /// Test API notifications
+  Future<void> testApiNotifications() async {
+    try {
+      print('🧪 Testing API notifications...');
+
+      if (currentChat.value == null || _consistentUserId == null) {
+        print('❌ No current chat or user ID for testing');
+        return;
+      }
+
+      final chat = currentChat.value!;
+      final testMessage = "Test notification at ${DateTime.now().toLocal()}";
+
+      // Test based on chat type
+      if (chat.isGroup) {
+        print('🧪 Testing group notification...');
+
+        final apiSenderId =
+            NotificationApiService.extractApiUserId(_consistentUserId!);
+        final apiGroupId = chat.apiGroupId ?? chat.id;
+
+        final result = await NotificationApiService.sendGroupChatNotification(
+          senderId: apiSenderId,
+          groupId: apiGroupId,
+          message: testMessage,
+        );
+
+        if (result['success'] == true) {
+          Get.snackbar('Test Success', 'Group notification API test passed!',
+              backgroundColor: Colors.green, colorText: Colors.white);
+        } else {
+          Get.snackbar('Test Failed',
+              'Group notification API test failed: ${result['message']}',
+              backgroundColor: Colors.red, colorText: Colors.white);
+        }
+      } else {
+        print('🧪 Testing personal notification...');
+
+        // Find other participant
+        String? otherParticipantId;
+        for (String participantId in chat.participants) {
+          if (participantId != _consistentUserId) {
+            otherParticipantId = participantId;
+            break;
+          }
+        }
+
+        if (otherParticipantId == null) {
+          Get.snackbar('Test Failed', 'Could not find other participant',
+              backgroundColor: Colors.red, colorText: Colors.white);
+          return;
+        }
+
+        final apiSenderId =
+            NotificationApiService.extractApiUserId(_consistentUserId!);
+        final apiReceiverId =
+            NotificationApiService.extractApiUserId(otherParticipantId);
+
+        final result = await NotificationApiService.sendChatNotification(
+          senderId: apiSenderId,
+          receiverId: apiReceiverId,
+          message: testMessage,
+        );
+
+        if (result['success'] == true) {
+          Get.snackbar('Test Success', 'Personal notification API test passed!',
+              backgroundColor: Colors.green, colorText: Colors.white);
+        } else {
+          Get.snackbar('Test Failed',
+              'Personal notification API test failed: ${result['message']}',
+              backgroundColor: Colors.red, colorText: Colors.white);
+        }
+      }
+    } catch (e) {
+      print('❌ Error testing API notifications: $e');
+      Get.snackbar('Test Error', 'API notification test error: $e',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+  /// REPLACE your existing sendImage method with this enhanced version
+  Future<void> sendImage() async {
+    await sendImageWithApiNotifications();
+  }
+
   Future<Map<String, dynamic>> _migrateChatDataIfNeeded(
       String chatId, Map<String, dynamic> data) async {
     try {
@@ -659,6 +1151,8 @@ class ChatController extends GetxController {
       await _notifyUserAboutNewPersonalChat(
           docRef.id, otherUserConsistentId, userName);
 
+      print('📦 ChatData keys: ${chatData.keys}');
+
       // CRITICAL: Add to local list immediately
       await _addNewChatToLocalListImmediate(docRef.id, chatData);
 
@@ -668,7 +1162,7 @@ class ChatController extends GetxController {
       });
 
       if (!_silentMode) {
-        _showSuccess('Chat created with $userName');
+        _showSuccess('Enhanced Chat created with $userName');
       }
 
       return docRef.id;
@@ -889,39 +1383,6 @@ class ChatController extends GetxController {
     }
   }
 
-// CRITICAL: Force update chat lists with immediate UI refresh
-  void _forceUpdateChatLists(List<Chat> chats) {
-    try {
-      print('🔄 Force updating chat lists with ${chats.length} chats');
-
-      // Sort chats by last message timestamp (newest first)
-      chats.sort(
-          (a, b) => b.lastMessageTimestamp.compareTo(a.lastMessageTimestamp));
-
-      final personalChatsList = chats.where((chat) => !chat.isGroup).toList();
-      final groupChatsList = chats.where((chat) => chat.isGroup).toList();
-
-      print('📊 Personal chats: ${personalChatsList.length}');
-      print('📊 Group chats: ${groupChatsList.length}');
-
-      // CRITICAL: Update observable lists immediately
-      personalChats.value = personalChatsList;
-      groupChats.value = groupChatsList;
-
-      // Force immediate refresh
-      personalChats.refresh();
-      groupChats.refresh();
-
-      // Update filtered lists
-      _applySearchFilter();
-
-      print('✅ Chat lists force updated successfully');
-    } catch (e) {
-      print('❌ Error in force update chat lists: $e');
-    }
-  }
-
-// ENHANCED: Send message with immediate local update
   Future<void> sendMessageEnhanced(String messageText) async {
     if (messageText.trim().isEmpty || currentChatId == null) return;
 
@@ -960,7 +1421,7 @@ class ChatController extends GetxController {
           msg.timestamp.difference(DateTime.now()).inSeconds.abs() < 5);
       currentMessages.refresh();
 
-      Get.snackbar('Error', 'Failed to send message',
+      Get.snackbar('Error', 'Failed to send message 1421',
           backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isSendingMessage.value = false;
@@ -1065,14 +1526,262 @@ class ChatController extends GetxController {
     }
   }
 
-// REPLACE your existing sendMessage method with this:
+  Future<String?> findExistingPersonalChat(String apiUserId) async {
+    try {
+      print('🔍 Looking for existing personal chat with API user: $apiUserId');
+
+      if (_consistentUserId == null) return null;
+
+      final otherUserConsistentId = 'app_user_$apiUserId';
+
+      // Search in Firebase for existing chat
+      final existingChatQuery = await FirebaseFirestore.instance
+          .collection('chats')
+          .where('participants', arrayContains: _consistentUserId!)
+          .where('isGroup', isEqualTo: false)
+          .get();
+
+      for (var doc in existingChatQuery.docs) {
+        final docParticipants =
+            List<String>.from(doc.data()['participants'] ?? []);
+
+        // Check if this chat contains both users
+        if (docParticipants.contains(_consistentUserId!) &&
+            (docParticipants.contains(otherUserConsistentId) ||
+                docParticipants.contains(apiUserId))) {
+          print('✅ Found existing chat: ${doc.id}');
+          return doc.id;
+        }
+      }
+
+      print('❌ No existing chat found');
+      return null;
+    } catch (e) {
+      print('❌ Error finding existing personal chat: $e');
+      return null;
+    }
+  }
+
+// 3. ADD this method to create chat from existing Firebase document
+  Future<Chat> createChatFromExistingFirebase(String chatId) async {
+    try {
+      print('🔧 Creating chat object from existing Firebase document: $chatId');
+
+      final chatDoc = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .get();
+
+      if (!chatDoc.exists) {
+        throw Exception('Chat document not found: $chatId');
+      }
+
+      final data = chatDoc.data()!;
+      return _createChatFromFirestoreDataEnhanced(chatId, data);
+    } catch (e) {
+      print('❌ Error creating chat from existing Firebase: $e');
+      throw e;
+    }
+  }
+
+// 4. REPLACE the sendMessage method in ChatController
   Future<void> sendMessage() async {
     if (messageText.value.trim().isEmpty) return;
 
     final message = messageText.value.trim();
-    messageText.value = ''; // Clear input immediately
+    messageText.value = '';
 
-    await sendMessageEnhanced(message);
+    await sendMessageEnhancedWithChatCreation(message);
+  }
+
+  Future<void> sendMessageEnhancedWithChatCreation(String messageText) async {
+    if (messageText.trim().isEmpty || currentChatId == null) return;
+
+    try {
+      print('📝 Sending message with enhanced chat creation logic...');
+      isSendingMessage.value = true;
+
+      String actualChatId = currentChatId!;
+
+      final message = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        chatId: actualChatId,
+        senderId: currentUserId ?? 'unknown',
+        senderName: currentUserName ?? 'Unknown User',
+        text: messageText.trim(),
+        timestamp: DateTime.now(),
+        type: MessageType.text,
+        readBy: [currentUserId ?? ''],
+      );
+
+      // STEP 1: Add to local messages immediately for instant display
+      currentMessages.add(message);
+      currentMessages.refresh();
+
+      await _updateLocalChatImmediately(actualChatId, messageText.trim());
+
+      await _sendMessageToFirestore(message);
+
+      print('✅ Message sent and chat created (if needed)');
+    } catch (e) {
+      print('❌ Error sending message with chat creation: $e');
+
+      // Remove message from local list if Firestore failed
+      currentMessages.removeWhere((msg) =>
+          msg.text == messageText.trim() &&
+          msg.timestamp.difference(DateTime.now()).inSeconds.abs() < 5);
+      currentMessages.refresh();
+
+      Get.snackbar('Error', 'Failed to send message 1632',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isSendingMessage.value = false;
+    }
+  }
+
+  Future<void> _addNewChatToPersonalChatsListAfterFirstMessage(
+      String chatId) async {
+    try {
+      print('➕ Adding chat to personal list after first message: $chatId');
+
+      // Fetch the chat document from Firebase
+      final chatDoc = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .get();
+
+      if (chatDoc.exists) {
+        final data = chatDoc.data()!;
+        final chat = _createChatFromFirestoreDataEnhanced(chatId, data);
+
+        // Add to personal chats list at the beginning (newest first)
+        personalChats.insert(0, chat);
+        personalChats.refresh();
+
+        // Update filtered lists
+        _applySearchFilter();
+
+        // Force UI refresh
+        refreshChatListUI();
+
+        print('✅ Chat added to personal chats list after first message');
+      }
+    } catch (e) {
+      print('❌ Error adding chat after first message: $e');
+    }
+  }
+
+// 6. ADD method to create Firebase chat for first message
+  Future<String> _createFirebaseChatForFirstMessage() async {
+    try {
+      print('🔥 Creating Firebase chat document for first message');
+
+      if (currentChat.value == null || _consistentUserId == null) {
+        throw Exception('No current chat or user ID');
+      }
+
+      // Find the other participant
+      String? otherParticipantId;
+      for (String participantId in currentChat.value!.participants) {
+        if (participantId != _consistentUserId) {
+          otherParticipantId = participantId;
+          break;
+        }
+      }
+
+      if (otherParticipantId == null) {
+        throw Exception('Could not find other participant');
+      }
+
+      // Get participant details
+      final otherParticipant =
+          currentChat.value!.participantDetails[otherParticipantId];
+      if (otherParticipant == null) {
+        throw Exception('Could not find other participant details');
+      }
+
+      // Create chat data
+      final chatData = {
+        'participants': [_consistentUserId!, otherParticipantId],
+        'isGroup': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastMessage': 'Chat started',
+        'lastMessageTimestamp': FieldValue.serverTimestamp(),
+        'lastMessageSender': _consistentUserId!,
+        'participantDetails': {
+          _consistentUserId!: {
+            'id': _consistentUserId!,
+            'name': _currentUserData!['full_name']?.toString() ?? 'User',
+            'avatar': _currentUserData!['profile_image'] ?? CustomImage.avator,
+            'isOnline': true,
+            'originalApiId': _currentUserData!['id']?.toString() ?? '',
+          },
+          otherParticipantId: {
+            'id': otherParticipantId,
+            'name': otherParticipant.name,
+            'avatar': otherParticipant.avatar,
+            'isOnline': otherParticipant.isOnline,
+            'originalApiId': otherParticipantId.replaceFirst('app_user_', ''),
+          },
+        },
+        'unreadCounts': {
+          _consistentUserId!: 0,
+          otherParticipantId: 0,
+        },
+        'chatType': 'personal',
+        'createdOnFirstMessage':
+            true, // Flag to indicate this was created on first message
+      };
+
+      print('📝 Creating Firebase chat document...');
+
+      final docRef =
+          await FirebaseFirestore.instance.collection('chats').add(chatData);
+
+      print('✅ Firebase chat created: ${docRef.id}');
+
+      // Create user document for API user if needed
+      final apiUserId = otherParticipantId.replaceFirst('app_user_', '');
+      await _ensureApiUserDocumentExists(
+          apiUserId, otherParticipantId, otherParticipant.name);
+
+      return docRef.id;
+    } catch (e) {
+      print('❌ Error creating Firebase chat for first message: $e');
+      throw e;
+    }
+  }
+
+// 7. ADD method to add new chat to personal chats list
+  Future<void> _addNewChatToPersonalChatsList(String chatId) async {
+    try {
+      print('➕ Adding new chat to personal chats list: $chatId');
+
+      // Fetch the chat document from Firebase
+      final chatDoc = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .get();
+
+      if (chatDoc.exists) {
+        final data = chatDoc.data()!;
+        final chat = _createChatFromFirestoreDataEnhanced(chatId, data);
+
+        // Add to personal chats list at the beginning (newest first)
+        personalChats.insert(0, chat);
+        personalChats.refresh();
+
+        // Update filtered lists
+        _applySearchFilter();
+
+        // Force UI refresh
+        refreshChatListUI();
+
+        print('✅ New chat added to personal chats list');
+      }
+    } catch (e) {
+      print('❌ Error adding new chat to personal chats list: $e');
+    }
   }
 
   Future<void> _loadChatsWithApiUserSupport() async {
@@ -4584,59 +5293,72 @@ class ChatController extends GetxController {
     try {
       print('➕ Adding new chat to local list immediately: $chatId');
 
-      // Create chat object from the data we just created
+      // ✅ SAFELY extract and assign values with fallback defaults
+      final participants = List<String>.from(chatData['participants'] ?? []);
+      final isGroup = chatData['isGroup'] ?? false;
+      final name = chatData['name']?.toString() ?? '';
+      final description = chatData['description']?.toString() ?? '';
+      final createdBy = chatData['createdBy']?.toString() ?? '';
+      final lastMessage = chatData['lastMessage']?.toString() ?? 'Chat created';
+      final lastMessageSender =
+          chatData['lastMessageSender']?.toString() ?? 'system';
+      final participantDetailsRaw =
+          chatData['participantDetails'] as Map<String, dynamic>? ?? {};
+      final unreadCountsRaw =
+          chatData['unreadCounts'] as Map<String, dynamic>? ?? {};
+
+      // ✅ Safely parse participantDetails
+      final participantDetails = participantDetailsRaw.map((key, value) {
+        final data = value as Map<String, dynamic>? ?? {};
+        return MapEntry(
+          key,
+          ParticipantInfo(
+            id: data['id']?.toString() ?? key,
+            name: data['name']?.toString() ?? 'Unknown',
+            avatar: data['avatar']?.toString() ?? '',
+            isOnline: data['isOnline'] ?? false,
+          ),
+        );
+      });
+
+      // ✅ Safely parse unreadCounts
+      final unreadCounts = unreadCountsRaw.map((key, value) {
+        return MapEntry(key, value is int ? value : 0);
+      });
+
+      // ✅ Build Chat object
       final chat = Chat(
         id: chatId,
-        name: chatData['name'],
-        participants: List<String>.from(chatData['participants']),
-        isGroup: chatData['isGroup'] ?? false,
-        description: chatData['description'],
-        createdBy: chatData['createdBy'],
-        createdAt: DateTime.now(), // Use current time
-        lastMessage: chatData['lastMessage'] ?? 'Chat created',
+        name: name,
+        participants: participants,
+        isGroup: isGroup,
+        description: description,
+        createdBy: createdBy,
+        createdAt: DateTime.now(), // Local fallback
+        lastMessage: lastMessage,
         lastMessageTimestamp: DateTime.now(),
-        lastMessageSender: chatData['lastMessageSender'] ?? 'system',
-        participantDetails:
-            (chatData['participantDetails'] as Map<String, dynamic>)
-                .map((key, value) {
-          final data = value as Map<String, dynamic>;
-          return MapEntry(
-            key,
-            ParticipantInfo(
-              id: data['id'] ?? key,
-              name: data['name'] ?? 'Unknown',
-              avatar: data['avatar'] ?? '',
-              isOnline: data['isOnline'] ?? false,
-            ),
-          );
-        }),
-        unreadCounts: Map<String, int>.from(
-            (chatData['unreadCounts'] as Map<String, dynamic>)
-                .map((key, value) => MapEntry(key, value as int? ?? 0))),
+        lastMessageSender: lastMessageSender,
+        participantDetails: participantDetails,
+        unreadCounts: unreadCounts,
       );
 
       print('📝 Created chat object: ${chat.id}, isGroup: ${chat.isGroup}');
 
-      // Add to appropriate list at the beginning (newest first)
-      if (chat.isGroup) {
+      // ✅ Add to correct list
+      if (isGroup) {
         groupChats.insert(0, chat);
         groupChats.refresh();
-        print(
-            '✅ Added new group chat to local list: ${groupChats.length} total');
+        print('✅ Added group chat: total ${groupChats.length}');
       } else {
         personalChats.insert(0, chat);
         personalChats.refresh();
-        print(
-            '✅ Added new personal chat to local list: ${personalChats.length} total');
+        print('✅ Added personal chat: total ${personalChats.length}');
       }
 
-      // Update filtered lists
-      _applySearchFilter();
+      _applySearchFilter(); // Re-apply filter if needed
+      refreshChatListUI(); // Force UI update
 
-      // Force UI refresh
-      refreshChatListUI();
-
-      print('✅ New chat successfully added to local list immediately');
+      print('✅ Chat added to local list successfully');
     } catch (e) {
       print('❌ Error adding new chat to local list: $e');
       print('❌ Stack trace: ${StackTrace.current}');
@@ -7480,35 +8202,6 @@ class ChatController extends GetxController {
     }
   }
 
-  Future<void> sendImage() async {
-    try {
-      print('📷 Starting gallery image selection...');
-
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 60, // Reduced quality for smaller size
-        maxWidth: 800,
-        maxHeight: 800,
-      );
-
-      if (image != null) {
-        print('✅ Image selected: ${image.path}');
-        await _processAndSendImageAsBase64(File(image.path));
-      } else {
-        print('❌ No image selected');
-      }
-    } catch (e) {
-      print('❌ Error selecting image: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to select image: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
-  }
-
 // Method to check Firebase Storage configuration
   Future<void> testFirebaseStorageConnection() async {
     try {
@@ -7770,11 +8463,6 @@ class ChatController extends GetxController {
     try {
       print('🔑 Initializing user FCM token...');
 
-      if (!Get.isRegistered<NotificationService>()) {
-        print('⚠️ NotificationService not registered');
-        return;
-      }
-
       final notificationService = Get.find<NotificationService>();
       final currentUserId = _consistentUserId;
 
@@ -7845,20 +8533,6 @@ class ChatController extends GetxController {
       print('✅ Signed out successfully');
     } catch (e) {
       print('❌ Error signing out: $e');
-    }
-  }
-
-  /// Check if user has notification permissions
-  Future<bool> checkNotificationPermissions() async {
-    try {
-      if (Get.isRegistered<NotificationService>()) {
-        final notificationService = Get.find<NotificationService>();
-        return notificationService.areNotificationsEnabled;
-      }
-      return false;
-    } catch (e) {
-      print('❌ Error checking notification permissions: $e');
-      return false;
     }
   }
 

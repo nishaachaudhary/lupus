@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_final_fields, unused_field, avoid_print, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, prefer_const_declarations
+// ignore_for_file: unused_field, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, prefer_const_declarations
 
 import 'dart:async';
 import 'dart:typed_data';
@@ -540,10 +540,15 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     print('   Chat type: ${chat.isGroup ? 'Group' : 'Personal'}');
     print('   Display name: ${chat.getDisplayName(controller!.currentUserId)}');
 
-    // CRITICAL: Mark this chat as being viewed to prevent notifications
+    // ✅ Set current chat context for message sending
     controller!.setCurrentChatId(chat.id);
+    controller!.currentChat.value = chat;
+    controller!.currentChatId = chat.id;
 
-    // Navigate to chat screen with enhanced return handling
+    // 🟢 Optional: Also reset messageText or other state if needed
+    controller!.messageText.value = '';
+
+    // 🚀 Navigate to chat screen
     Get.to(() => PersonalChatScreen(chat: chat))?.then((_) {
       print('🔄 Returned from chat - triggering ENHANCED refresh');
       _handleReturnFromChatEnhanced();
@@ -1106,7 +1111,8 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
 
 // 19. ENHANCED: Open chat with user using enhanced method
   Future<void> _openChatWithUserEnhanced(Map<String, dynamic> userData) async {
-    print('🔧 Opening ENHANCED chat with ${userData['name']}');
+    print(
+        '🔧 Opening chat with ${userData['name']} WITHOUT creating Firebase chat');
     print('🔧 User data: $userData');
 
     try {
@@ -1119,17 +1125,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         await Future.delayed(Duration(milliseconds: 1000));
       }
 
-      // Set loading state
-      controller!.isSendingMessage.value = true;
-
-      // Show loading indicator
-      // Get.dialog(
-      //   Center(
-      //     child:   CircularProgressIndicator(color: CustomColors.purpleColor),
-      //   ),
-      //   barrierDismissible: false,
-      // );
-
       // Ensure user session is fresh
       await controller!.refreshUserSession();
 
@@ -1137,8 +1132,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       print('👤 Current User ID: $currentUserId');
 
       if (currentUserId == null) {
-        controller!.isSendingMessage.value = false;
-        Get.back();
         Get.snackbar(
           'Error',
           'Please restart the app and try again',
@@ -1148,96 +1141,70 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         return;
       }
 
-      // Use the enhanced createPersonalChat method
-      String? chatId = await controller!.createPersonalChatEnhanced(
-        userData['id'],
-        userData['name'],
-      );
+      // Check if chat already exists in Firebase (only those with messages)
+      String? existingChatId = await controller!
+          .findExistingPersonalChatWithMessages(userData['id']);
 
-      Get.back(); // Close loading dialog
+      Chat chatToOpen;
 
-      if (chatId != null) {
-        print('✅ Chat created successfully: $chatId');
+      if (existingChatId != null) {
+        // Chat exists in Firebase with messages - load it
+        print('✅ Found existing Firebase chat with messages: $existingChatId');
 
-        // Wait for real-time updates to propagate
-        await Future.delayed(Duration(milliseconds: 1000));
-
-        // Force refresh to ensure chat is in local list
-        await controller!.forceRefreshChats();
-
-        // Find the created chat
-        final createdChat = [
+        final existingChat = [
           ...controller!.personalChats,
           ...controller!.groupChats
-        ].firstWhereOrNull((chat) => chat.id == chatId);
+        ].firstWhereOrNull((chat) => chat.id == existingChatId);
 
-        if (createdChat != null) {
-          print('✅ Found created chat in list, navigating...');
-          controller!.isSendingMessage.value = false;
-
-          Get.to(() => PersonalChatScreen(chat: createdChat))?.then((_) {
-            _handleReturnFromChatEnhanced();
-          });
+        if (existingChat != null) {
+          chatToOpen = existingChat;
         } else {
-          print('⚠️ Creating manual chat object...');
-
-          // Create manual chat object as fallback
-          final chat = Chat(
-            id: chatId,
-            participants: [currentUserId, 'app_user_${userData['id']}'],
-            isGroup: false,
-            unreadCounts: {
-              currentUserId: 0,
-              'app_user_${userData['id']}': 0,
-            },
-            participantDetails: {
-              currentUserId: ParticipantInfo(
-                id: currentUserId,
-                name: controller!.currentUserName ?? 'You',
-                avatar: controller!.currentUserAvatar,
-                isOnline: true,
-              ),
-              'app_user_${userData['id']}': ParticipantInfo(
-                id: 'app_user_${userData['id']}',
-                name: userData['name'],
-                avatar: userData['avatar'] ?? CustomImage.avator,
-                isOnline: userData['isOnline'] ?? false,
-              ),
-            },
-            lastMessage: 'Chat created',
-            lastMessageTimestamp: DateTime.now(),
-            lastMessageSender: 'system',
-            createdAt: DateTime.now(),
-          );
-
-          controller!.isSendingMessage.value = false;
-
-          Get.snackbar(
-            'Success',
-            'Chat started with ${userData['name']}',
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-          );
-
-          Get.to(() => PersonalChatScreen(chat: chat))?.then((_) {
-            _handleReturnFromChatEnhanced();
-          });
+          // Create from Firebase data
+          chatToOpen =
+              await controller!.createChatFromExistingFirebase(existingChatId);
         }
       } else {
-        controller!.isSendingMessage.value = false;
-        Get.snackbar(
-          'Error',
-          'Unable to start chat right now. Please try again.',
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
+        // No Firebase chat exists with messages - create TEMPORARY chat object
+        print(
+            '🔄 Creating temporary chat object (no Firebase document until first message)');
+
+        final otherUserConsistentId = 'app_user_${userData['id']}';
+
+        chatToOpen = Chat(
+          id: 'temp_${DateTime.now().millisecondsSinceEpoch}', // Temporary ID
+          participants: [currentUserId, otherUserConsistentId],
+          isGroup: false,
+          unreadCounts: {
+            currentUserId: 0,
+            otherUserConsistentId: 0,
+          },
+          participantDetails: {
+            currentUserId: ParticipantInfo(
+              id: currentUserId,
+              name: controller!.currentUserName ?? 'You',
+              avatar: controller!.currentUserAvatar,
+              isOnline: true,
+            ),
+            otherUserConsistentId: ParticipantInfo(
+              id: otherUserConsistentId,
+              name: userData['name'],
+              avatar: userData['avatar'] ?? CustomImage.avator,
+              isOnline: userData['isOnline'] ?? false,
+            ),
+          },
+          lastMessage: '', // Empty for new chat
+          lastMessageTimestamp: DateTime.now(),
+          lastMessageSender: '',
+          createdAt: DateTime.now(),
+          isTemporary: true, // CRITICAL: Flag to indicate this is temporary
         );
       }
-    } catch (e) {
-      controller?.isSendingMessage.value = false;
-      if (Get.isDialogOpen ?? false) {
-        Get.back();
-      }
 
+      // Navigate to chat screen
+      Get.to(() => PersonalChatScreen(chat: chatToOpen))?.then((_) {
+        _handleReturnFromChatEnhanced();
+      });
+    } catch (e) {
       print('❌ Error in _openChatWithUserEnhanced: $e');
       Get.snackbar(
         'Error',
@@ -1251,41 +1218,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
 // 20. UPDATE your _openChatWithUser method to use the enhanced version:
   Future<void> _openChatWithUser(Map<String, dynamic> userData) async {
     await _openChatWithUserEnhanced(userData);
-  }
-
-// ENHANCED: Handle chat tap with proper return handling
-  void _handleChatTap(Chat chat, int currentTab) {
-    print('🎯 Enhanced chat tap: ${chat.id}');
-
-    // Navigate to chat screen with enhanced return handling
-    Get.to(() => PersonalChatScreen(chat: chat))?.then((_) {
-      print('🔄 Returned from chat - triggering enhanced refresh');
-      _handleReturnFromChat();
-    });
-  }
-
-// ENHANCED: Handle return from chat with forced refresh
-  Future<void> _handleReturnFromChat() async {
-    try {
-      print('🔄 Enhanced handling return from chat...');
-
-      if (controller != null && mounted) {
-        // Force refresh chats to get latest updates
-        await controller!.forceRefreshChats();
-
-        // Small delay to ensure updates propagate
-        await Future.delayed(Duration(milliseconds: 300));
-
-        // Force UI update
-        if (mounted) {
-          setState(() {});
-        }
-
-        print('✅ Enhanced return from chat handling completed');
-      }
-    } catch (e) {
-      print('❌ Error in enhanced return from chat handling: $e');
-    }
   }
 
   Future<void> _handleEnhancedPullToRefresh() async {
