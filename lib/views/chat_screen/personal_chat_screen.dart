@@ -1,8 +1,7 @@
-// ignore_for_file: unused_field, avoid_print, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace, unused_local_variable, avoid_unnecessary_containers, use_super_parameters, unnecessary_null_comparison
-
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lupus_care/constant/dimension.dart';
@@ -1716,6 +1715,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                             controller.isConnected.value,
                         onChanged: (val) => controller.messageText.value = val,
                         onTap: () {
+                          // Hide emoji keyboard when text field is tapped
                           if (isEmojiVisible) {
                             setState(() {
                               isEmojiVisible = false;

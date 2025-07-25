@@ -1,11 +1,12 @@
-// ignore_for_file: unused_field, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, prefer_const_declarations
-
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert'; // ADD THIS LINE
 import 'package:lupus_care/constant/dimension.dart';
 import 'package:lupus_care/constant/icons.dart';
@@ -24,7 +25,7 @@ import 'package:lupus_care/views/chat_screen/search_bar_widget.dart';
 import 'package:lupus_care/views/group_chat/group_info_screen.dart';
 
 class CommunityChatScreen extends StatefulWidget {
-  const CommunityChatScreen({super.key});
+  CommunityChatScreen({super.key});
 
   @override
   State<CommunityChatScreen> createState() => _CommunityChatScreenState();
@@ -77,8 +78,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
       _loadAvailableGroups(),
     ]);
   }
-
-// Replace your existing _loadAvailableGroups method with this enhanced debug version
 
   Future<void> _loadAvailableGroups() async {
     try {
@@ -468,28 +467,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-  // Refresh chats when app resumes or screen becomes visible
-  Future<void> _refreshChatsOnResume() async {
-    try {
-      if (controller != null) {
-        // Force refresh to get latest chats
-        await controller!.forceRefreshChats();
-
-        // Update UI
-        if (mounted) {
-          setState(() {});
-        }
-
-        print('✅ Chats refreshed on resume');
-      }
-    } catch (e) {
-      print('❌ Error refreshing chats on resume: $e');
-    }
-  }
-
-// ENHANCED CommunityChatScreen methods for real-time personal chat updates
-
-// 1. REPLACE your _initializeChatController method:
   Future<void> _initializeChatController() async {
     try {
       print('🎮 CommunityChatScreen: Initializing ENHANCED ChatController...');
@@ -534,7 +511,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-// 2. ENHANCED: Handle chat tap with comprehensive real-time refresh
   void _handleChatTapEnhanced(Chat chat, int currentTab) {
     print('🎯 Enhanced chat tap: ${chat.id}');
     print('   Chat type: ${chat.isGroup ? 'Group' : 'Personal'}');
@@ -550,7 +526,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     });
   }
 
-// 3. ENHANCED: Handle return from chat with comprehensive refresh
   Future<void> _handleReturnFromChatEnhanced() async {
     try {
       print('🔄 ENHANCED handling return from chat...');
@@ -702,7 +677,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
-// 5. NEW: Build initial loading state
   Widget _buildInitialLoadingState() {
     return Center(
       child: Column(
@@ -712,31 +686,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
             color: CustomColors.purpleColor,
           ),
         ],
-      ),
-    );
-  }
-
-// 6. ENHANCED: Build live chat tile with comprehensive real-time features
-  Widget _buildEnhancedLiveChatTile(Chat chat, int currentTab) {
-    final currentUserId = controller!.currentUserId;
-    final unreadCount = chat.unreadCounts[currentUserId] ?? 0;
-
-    // Get real-time online status
-    final isOnline = currentTab == 0 && !chat.isGroup
-        ? controller!.isOtherParticipantOnline(chat)
-        : false;
-
-    return Container(
-      color: unreadCount > 0 ? Colors.blue.withOpacity(0.02) : Colors.white,
-      margin: EdgeInsets.only(bottom: 1),
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: _buildEnhancedChatAvatarWithOnlineStatus(
-            chat, currentTab, unreadCount, isOnline),
-        title: _buildEnhancedChatTitleWithTime(chat, currentTab, unreadCount),
-        subtitle: _buildEnhancedChatSubtitleWithPreview(chat, unreadCount),
-        onTap: () => _handleChatTapEnhanced(chat, currentTab),
-        onLongPress: () => _showChatOptionsBottomSheet(chat),
       ),
     );
   }
@@ -857,7 +806,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     return _buildDefaultImageEnhanced(chat, currentTab);
   }
 
-// 11. ENHANCED: Base64 image with better error handling
   Widget _buildBase64ImageEnhanced(
       String base64Data, Chat chat, int currentTab) {
     try {
@@ -885,7 +833,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-// 12. ENHANCED: Network image with better loading
   Widget _buildNetworkImageEnhanced(
       String imageUrl, Chat chat, int currentTab) {
     return Image.network(
@@ -925,7 +872,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
-// 13. ENHANCED: Asset image with error handling
   Widget _buildAssetImageEnhanced(String assetPath, Chat chat, int currentTab) {
     return Image.asset(
       assetPath,
@@ -939,7 +885,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
-// 14. ENHANCED: Default image with better styling
   Widget _buildDefaultImageEnhanced(Chat chat, int currentTab) {
     return Container(
       width: 56,
@@ -956,7 +901,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
-// 15. ENHANCED: Time formatting with relative time
   String _formatLastMessageTimeEnhanced(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
@@ -1104,27 +1048,27 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     );
   }
 
+// MODIFIED: _openChatWithUserEnhanced to use virtual chat creation
   Future<void> _openChatWithUserEnhanced(Map<String, dynamic> userData) async {
-    print(
-        '🔧 Opening chat with ${userData['name']} WITHOUT creating Firebase chat');
-    print('🔧 User data: $userData');
-
     try {
-      // Initialize controller if not available
       if (controller == null) {
-        print('🔧 Creating ChatController...');
         controller = ChatController();
         Get.put<ChatController>(controller!, permanent: true);
         controller!.setSilentMode(true);
         await Future.delayed(Duration(milliseconds: 1000));
       }
 
+      // Show loading indicator
+      controller!.isSendingMessage.value = true;
+
+      // Ensure user session is fresh
       await controller!.refreshUserSession();
 
       final currentUserId = controller!.currentUserId;
       print('👤 Current User ID: $currentUserId');
 
       if (currentUserId == null) {
+        controller!.isSendingMessage.value = false;
         Get.snackbar(
           'Error',
           'Please restart the app and try again',
@@ -1134,70 +1078,95 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         return;
       }
 
-      // Check if chat already exists in Firebase (only those with messages)
-      String? existingChatId = await controller!
-          .findExistingPersonalChatWithMessages(userData['id']);
+      // Use the MODIFIED createPersonalChat method (creates virtual chat only)
+      String? chatId = await controller!.createPersonalChat(
+        userData['id'],
+        userData['name'],
+      );
 
-      Chat chatToOpen;
+      if (chatId != null) {
+        print('✅ Virtual chat created successfully: $chatId');
 
-      if (existingChatId != null) {
-        // Chat exists in Firebase with messages - load it
-        print('✅ Found existing Firebase chat with messages: $existingChatId');
-
-        final existingChat = [
+        // Find the created virtual chat
+        final createdChat = [
           ...controller!.personalChats,
           ...controller!.groupChats
-        ].firstWhereOrNull((chat) => chat.id == existingChatId);
+        ].firstWhereOrNull((chat) => chat.id == chatId);
 
-        if (existingChat != null) {
-          chatToOpen = existingChat;
+        if (createdChat != null) {
+          print('✅ Found virtual chat in list, navigating...');
+          controller!.isSendingMessage.value = false;
+
+          // Show informative message about virtual chat
+          // Get.snackbar(
+          //   'Chat Ready',
+          //   'Send your first message to start the conversation with ${userData['name']}',
+          //   backgroundColor: Colors.blue,
+          //   colorText: Colors.white,
+          //   duration: Duration(seconds: 3),
+          // );
+
+          Get.to(() => PersonalChatScreen(chat: createdChat))?.then((_) {
+            _handleReturnFromChatEnhanced();
+          });
         } else {
-          // Create from Firebase data
-          chatToOpen =
-              await controller!.createChatFromExistingFirebase(existingChatId);
+          print('⚠️ Creating manual virtual chat object...');
+
+          // Create manual virtual chat object as fallback
+          final chat = Chat(
+            id: chatId,
+            participants: [currentUserId, 'app_user_${userData['id']}'],
+            isGroup: false,
+            unreadCounts: {
+              currentUserId: 0,
+              'app_user_${userData['id']}': 0,
+            },
+            participantDetails: {
+              currentUserId: ParticipantInfo(
+                id: currentUserId,
+                name: controller!.currentUserName ?? 'You',
+                avatar: controller!.currentUserAvatar,
+                isOnline: true,
+              ),
+              'app_user_${userData['id']}': ParticipantInfo(
+                id: 'app_user_${userData['id']}',
+                name: userData['name'],
+                avatar: userData['avatar'] ?? CustomImage.avator,
+                isOnline: userData['isOnline'] ?? false,
+              ),
+            },
+            lastMessage: '',
+            lastMessageTimestamp: DateTime.now(),
+            lastMessageSender: '',
+            createdAt: DateTime.now(),
+          );
+
+          controller!.isSendingMessage.value = false;
+
+          Get.snackbar(
+            'Chat Ready',
+            'Send your first message to start the conversation with ${userData['name']}',
+            backgroundColor: Colors.blue,
+            colorText: Colors.white,
+            duration: Duration(seconds: 3),
+          );
+
+          Get.to(() => PersonalChatScreen(chat: chat))?.then((_) {
+            _handleReturnFromChatEnhanced();
+          });
         }
       } else {
-        // No Firebase chat exists with messages - create TEMPORARY chat object
-        print(
-            '🔄 Creating temporary chat object (no Firebase document until first message)');
-
-        final otherUserConsistentId = 'app_user_${userData['id']}';
-
-        chatToOpen = Chat(
-          id: 'temp_${DateTime.now().millisecondsSinceEpoch}', // Temporary ID
-          participants: [currentUserId, otherUserConsistentId],
-          isGroup: false,
-          unreadCounts: {
-            currentUserId: 0,
-            otherUserConsistentId: 0,
-          },
-          participantDetails: {
-            currentUserId: ParticipantInfo(
-              id: currentUserId,
-              name: controller!.currentUserName ?? 'You',
-              avatar: controller!.currentUserAvatar,
-              isOnline: true,
-            ),
-            otherUserConsistentId: ParticipantInfo(
-              id: otherUserConsistentId,
-              name: userData['name'],
-              avatar: userData['avatar'] ?? CustomImage.avator,
-              isOnline: userData['isOnline'] ?? false,
-            ),
-          },
-          lastMessage: '', // Empty for new chat
-          lastMessageTimestamp: DateTime.now(),
-          lastMessageSender: '',
-          createdAt: DateTime.now(),
-          isTemporary: true, // CRITICAL: Flag to indicate this is temporary
+        controller!.isSendingMessage.value = false;
+        Get.snackbar(
+          'Error',
+          'Unable to start chat right now. Please try again.',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
         );
       }
-
-      // Navigate to chat screen
-      Get.to(() => PersonalChatScreen(chat: chatToOpen))?.then((_) {
-        _handleReturnFromChatEnhanced();
-      });
     } catch (e) {
+      controller?.isSendingMessage.value = false;
+
       print('❌ Error in _openChatWithUserEnhanced: $e');
       Get.snackbar(
         'Error',
@@ -1206,6 +1175,155 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
         colorText: Colors.white,
       );
     }
+  }
+
+  Widget _buildEnhancedLiveChatTile(Chat chat, int currentTab) {
+    final currentUserId = controller!.currentUserId;
+    final unreadCount = chat.unreadCounts[currentUserId] ?? 0;
+    final isVirtualChat = chat.id.startsWith('virtual_');
+
+    // Get real-time online status
+    final isOnline = currentTab == 0 && !chat.isGroup
+        ? controller!.isOtherParticipantOnline(chat)
+        : false;
+
+    return Container(
+      color: unreadCount > 0 ? Colors.blue.withOpacity(0.02) : Colors.white,
+      margin: EdgeInsets.only(bottom: 1),
+      decoration: isVirtualChat
+          ? BoxDecoration(
+              border: Border.all(color: Colors.blue.withOpacity(0.3), width: 1),
+              borderRadius: BorderRadius.circular(8),
+            )
+          : null,
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Stack(
+          children: [
+            _buildEnhancedChatAvatarWithOnlineStatus(
+                chat, currentTab, unreadCount, isOnline),
+            // Add a small indicator for virtual chats
+            if (isVirtualChat)
+              Positioned(
+                top: 0,
+                left: 0,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1),
+                  ),
+                  child: Icon(
+                    Icons.chat_bubble_outline,
+                    size: 10,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: _buildEnhancedChatTitleWithTime(
+                  chat, currentTab, unreadCount),
+            ),
+            if (isVirtualChat)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'New',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        subtitle: _buildVirtualChatSubtitle(chat, unreadCount, isVirtualChat),
+        onTap: () => _handleChatTapEnhanced(chat, currentTab),
+        onLongPress: () => _showChatOptionsBottomSheet(chat),
+      ),
+    );
+  }
+
+  Widget _buildVirtualChatSubtitle(
+      Chat chat, int unreadCount, bool isVirtualChat) {
+    String lastMessage;
+
+    if (isVirtualChat) {
+      lastMessage = 'Tap to send your first message';
+    } else {
+      lastMessage = chat.lastMessage.isNotEmpty
+          ? (chat.lastMessage.length > 50
+              ? '${chat.lastMessage.substring(0, 50)}...'
+              : chat.lastMessage)
+          : 'No messages yet';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 4),
+        Row(
+          children: [
+            if (chat.lastMessageSender == controller!.currentUserId &&
+                !isVirtualChat)
+              SizedBox(width: 4),
+
+            Expanded(
+              child: Text(
+                lastMessage,
+                style: regularStyle.copyWith(
+                  fontSize: Dimensions.fontSizeLarge,
+                  color: isVirtualChat
+                      ? Colors.blue
+                      : (unreadCount > 0
+                          ? Colors.black87
+                          : CustomColors.blackColor),
+                  fontWeight:
+                      unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
+                  fontStyle: isVirtualChat || lastMessage == 'No messages yet'
+                      ? FontStyle.italic
+                      : FontStyle.normal,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
+            // Unread count badge
+            if (unreadCount > 0 && !isVirtualChat)
+              Container(
+                height: 20,
+                width: 20,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Center(
+                  child: Text(
+                    unreadCount.toString(),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              )
+          ],
+        ),
+      ],
+    );
   }
 
   Future<void> _openChatWithUser(Map<String, dynamic> userData) async {
@@ -1252,6 +1370,7 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
+// ENHANCED: Handle app resume with comprehensive refresh
   Future<void> _handleAppResume() async {
     try {
       print('📱 Enhanced app resume handling...');
@@ -1474,10 +1593,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     final isOnline = person['isOnline'] == true;
     final lastSeen = person['lastSeen']?.toString();
 
-    print('👤 Building person tile for: ${person['name']}');
-    print('🟢 Online status: $isOnline');
-    print('⏰ Last seen: $lastSeen');
-
     return Container(
       margin: EdgeInsets.only(bottom: 5),
       child: ListTile(
@@ -1499,7 +1614,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
                 ),
               ),
             ),
-            // ALWAYS show status indicator - green for online, grey for offline
             Positioned(
               right: 2,
               bottom: 2,
@@ -1529,33 +1643,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
           style: semiBoldStyle.copyWith(
             fontSize: Dimensions.fontSizeLarge,
           ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Enhanced status text with better formatting
-            // Row(
-            //   children: [
-            //     Container(
-            //       width: 8,
-            //       height: 8,
-            //       decoration: BoxDecoration(
-            //         shape: BoxShape.circle,
-            //         color: isOnline ? Colors.green : Colors.grey[400],
-            //       ),
-            //     ),
-            //     SizedBox(width: 6),
-            //     Text(
-            //       isOnline ? 'Online' : (lastSeen != null ? _formatLastSeen(lastSeen) : 'Offline'),
-            //       style: regularStyle.copyWith(
-            //         fontSize: Dimensions.fontSizeSmall,
-            //         color: isOnline ? Colors.green[600] : Colors.grey[500],
-            //         fontWeight: isOnline ? FontWeight.w500 : FontWeight.normal,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-          ],
         ),
         onTap: () {
           print('👆 Tapping on user: ${person['name']} (Online: $isOnline)');
@@ -1659,34 +1746,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
           ),
       ],
     );
-  }
-
-  String _formatLastSeen(String lastSeenStr) {
-    try {
-      final lastSeen = DateTime.parse(lastSeenStr);
-      final now = DateTime.now();
-      final difference = now.difference(lastSeen);
-
-      if (difference.inSeconds < 30) {
-        return 'Just now';
-      } else if (difference.inMinutes < 1) {
-        return '${difference.inSeconds}s ago';
-      } else if (difference.inMinutes < 60) {
-        return '${difference.inMinutes}m ago';
-      } else if (difference.inHours < 24) {
-        return '${difference.inHours}h ago';
-      } else if (difference.inDays == 1) {
-        return 'Yesterday';
-      } else if (difference.inDays < 7) {
-        return '${difference.inDays} days ago';
-      } else {
-        // For HRMS, show actual date for longer periods
-        return '${lastSeen.day}/${lastSeen.month}/${lastSeen.year}';
-      }
-    } catch (e) {
-      print('❌ Error formatting last seen: $e');
-      return 'Offline';
-    }
   }
 
   Widget _buildStartChatButton() {
@@ -1874,7 +1933,6 @@ class _CommunityChatScreenState extends State<CommunityChatScreen>
     }
   }
 
-// 2. CRITICAL: Notify all participants about new group
   Future<void> _notifyAllParticipantsAboutGroup(String groupId,
       List<String> participants, Map<String, dynamic> groupData) async {
     try {
