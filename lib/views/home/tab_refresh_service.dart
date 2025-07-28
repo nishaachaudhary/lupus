@@ -31,14 +31,13 @@ class TabRefreshService extends GetxService {
     }
 
     final lastRefresh = _lastRefreshTimes[tabIndex]!;
-    final timeSinceRefresh = DateTime.now().difference(lastRefresh).inMilliseconds;
+    final timeSinceRefresh =
+        DateTime.now().difference(lastRefresh).inMilliseconds;
 
     return timeSinceRefresh > MIN_REFRESH_INTERVAL;
   }
 
   void _refreshTab(int tabIndex) {
-    print("🔄 Refreshing tab $tabIndex");
-
     switch (tabIndex) {
       case 0:
         _refreshHomeTab();
@@ -64,20 +63,14 @@ class TabRefreshService extends GetxService {
         final controller = Get.find<HomeController>();
         controller.refreshProfile();
         controller.refreshReminders();
-        print("✅ Home tab refreshed");
       }
-    } catch (e) {
-      print("❌ Error refreshing home tab: $e");
-    }
+    } catch (e) {}
   }
 
   void _refreshSymptomsTab() {
     try {
       // Add symptoms controller refresh logic here
-      print("✅ Symptoms tab refreshed");
-    } catch (e) {
-      print("❌ Error refreshing symptoms tab: $e");
-    }
+    } catch (e) {}
   }
 
   void _refreshMedicationTab() {
@@ -86,29 +79,20 @@ class TabRefreshService extends GetxService {
         final controller = Get.find<MedicationController>();
         controller.refreshMedications();
         controller.resetToAllMedications();
-        print("✅ Medication tab refreshed");
       }
-    } catch (e) {
-      print("❌ Error refreshing medication tab: $e");
-    }
+    } catch (e) {}
   }
 
   void _refreshChatTab() {
     try {
       // Add chat controller refresh logic here
-      print("✅ Chat tab refreshed");
-    } catch (e) {
-      print("❌ Error refreshing chat tab: $e");
-    }
+    } catch (e) {}
   }
 
   void _refreshProfileTab() {
     try {
       // Add profile controller refresh logic here
-      print("✅ Profile tab refreshed");
-    } catch (e) {
-      print("❌ Error refreshing profile tab: $e");
-    }
+    } catch (e) {}
   }
 
   // Force refresh a specific tab
@@ -135,7 +119,8 @@ class TabRefreshService extends GetxService {
     }
 
     final lastRefresh = _lastRefreshTimes[tabIndex]!;
-    final timeSinceRefresh = DateTime.now().difference(lastRefresh).inMilliseconds;
+    final timeSinceRefresh =
+        DateTime.now().difference(lastRefresh).inMilliseconds;
 
     return timeSinceRefresh < MIN_REFRESH_INTERVAL;
   }

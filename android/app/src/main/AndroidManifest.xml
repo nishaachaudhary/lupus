@@ -35,7 +35,8 @@
         android:requestLegacyExternalStorage="true"
         android:allowBackup="false"
         android:fullBackupContent="false"
-        android:theme="@style/LaunchTheme">
+        android:theme="@style/LaunchTheme"
+        android:enableOnBackInvokedCallback="true">
 
         <activity
             android:name=".MainActivity"
