@@ -1,5 +1,7 @@
 // UPDATED: LoginController with Profile Screen Flow
 
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -16,7 +18,8 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class LoginController extends GetxController {
   final AuthService authService = AuthService();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  // final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final TextEditingController emailController = TextEditingController();
@@ -62,8 +65,6 @@ class LoginController extends GetxController {
       return 'fcm_token_error_${DateTime.now().millisecondsSinceEpoch}';
     }
   }
-
-
 
   // Your existing validation method
   bool validateInputs() {
@@ -149,7 +150,6 @@ class LoginController extends GetxController {
 
         // Handle post-login navigation
         await handlePostLoginNavigation();
-
       } else {
         // Handle login failure
         String errorMessage = response['message'] ?? "Login failed";
@@ -202,7 +202,8 @@ class LoginController extends GetxController {
       print('🔔 === STEP 1: GETTING FCM TOKEN FOR GOOGLE SIGN-IN ===');
       final fcmToken = await getFcmToken();
       print('✅ FCM token obtained for Google sign-in');
-      print('🔔 Google FCM token: ${fcmToken.substring(0, 30)}...${fcmToken.substring(fcmToken.length - 10)}');
+      print(
+          '🔔 Google FCM token: ${fcmToken.substring(0, 30)}...${fcmToken.substring(fcmToken.length - 10)}');
 
       // Step 2: Clear any existing authentication completely
       print('🧹 === STEP 2: CLEARING EXISTING AUTH ===');
@@ -210,7 +211,8 @@ class LoginController extends GetxController {
 
       // Step 3: Create fresh Google Sign-In instance and get user
       print('👤 === STEP 3: GETTING GOOGLE USER ===');
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser =
+          await _googleSignIn.authenticate();
       if (googleUser == null) {
         print('❌ Google Sign-in was canceled by user');
         isGoogleLoading.value = false;
@@ -224,16 +226,19 @@ class LoginController extends GetxController {
 
       // Step 4: Get authentication tokens
       print('🔑 === STEP 4: GETTING GOOGLE AUTH TOKENS ===');
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       if (googleAuth.idToken == null) {
         throw Exception("Failed to get ID token from Google");
       }
 
-      print('✅ Google ID token obtained: ${googleAuth.idToken?.substring(0, 30)}...');
+      print(
+          '✅ Google ID token obtained: ${googleAuth.idToken?.substring(0, 30)}...');
 
       // Step 5: Try to login with Google credentials first
       print('🔍 === STEP 5: TRYING EXISTING USER LOGIN ===');
-      final loginResponse = await _tryLoginWithGoogle(googleUser, googleAuth, fcmToken);
+      final loginResponse =
+          await _tryLoginWithGoogle(googleUser, googleAuth, fcmToken);
       print('📥 Login response success: ${loginResponse['success']}');
 
       if (loginResponse['success'] == true) {
@@ -258,14 +263,17 @@ class LoginController extends GetxController {
           duration: Duration(seconds: 3),
         );
 
-        Get.offAllNamed('/home'); // Navigate directly to home for existing users
+        Get.offAllNamed(
+            '/home'); // Navigate directly to home for existing users
       } else {
         print("🆕 === NEW USER REGISTRATION ===");
         print("🆕 New user detected - creating account with FCM token");
 
         // No existing account found - create new user with token
-        final registrationResponse = await _createNewGoogleUserWithToken(googleUser, googleAuth, fcmToken);
-        print('📥 Registration response success: ${registrationResponse['success']}');
+        final registrationResponse = await _createNewGoogleUserWithToken(
+            googleUser, googleAuth, fcmToken);
+        print(
+            '📥 Registration response success: ${registrationResponse['success']}');
 
         if (registrationResponse['success'] == true) {
           print("✅ === NEW USER REGISTRATION SUCCESS ===");
@@ -286,7 +294,8 @@ class LoginController extends GetxController {
             duration: Duration(seconds: 3),
           );
 
-          Get.offAllNamed('/createProfile'); // Navigate to profile for new users
+          Get.offAllNamed(
+              '/createProfile'); // Navigate to profile for new users
         } else {
           // Fallback: Save with generated token
           print("⚠️ === USING FALLBACK TOKEN ===");
@@ -307,7 +316,6 @@ class LoginController extends GetxController {
           Get.offAllNamed('/createProfile');
         }
       }
-
     } catch (e) {
       print("❌ === GOOGLE SIGN-IN ERROR ===");
       print("❌ Google Sign-In error: $e");
@@ -332,18 +340,20 @@ class LoginController extends GetxController {
 
   // COMPLETELY UPDATED: Create new Google user with detailed FCM logging
   Future<Map<String, dynamic>> _createNewGoogleUserWithToken(
-      GoogleSignInAccount googleUser,
-      GoogleSignInAuthentication googleAuth,
-      String fcmToken, // FCM token parameter
-      ) async {
+    GoogleSignInAccount googleUser,
+    GoogleSignInAuthentication googleAuth,
+    String fcmToken, // FCM token parameter
+  ) async {
     try {
       print("📝 === CREATING NEW GOOGLE USER WITH REAL FCM TOKEN ===");
       print("📝 User email: ${googleUser.email}");
       print("📝 User name: ${googleUser.displayName}");
       print("📝 Google ID: ${googleUser.id}");
-      print("🔔 FCM token for registration: ${fcmToken.substring(0, 30)}...${fcmToken.substring(fcmToken.length - 10)}");
+      print(
+          "🔔 FCM token for registration: ${fcmToken.substring(0, 30)}...${fcmToken.substring(fcmToken.length - 10)}");
 
-      var request = http.MultipartRequest('POST', Uri.parse(authService.baseUrl));
+      var request =
+          http.MultipartRequest('POST', Uri.parse(authService.baseUrl));
 
       final registrationFields = {
         'request': 'register',
@@ -383,10 +393,13 @@ class LoginController extends GetxController {
             print("✅ Response message: ${responseData['message']}");
 
             if (responseData['status'] == 'success') {
-              final token = responseData['token'] ?? responseData['data']?['token'];
-              final userId = responseData['user_id'] ?? responseData['data']?['id'];
+              final token =
+                  responseData['token'] ?? responseData['data']?['token'];
+              final userId =
+                  responseData['user_id'] ?? responseData['data']?['id'];
 
-              print("✅ Backend token obtained: ${token?.toString().substring(0, 20)}...");
+              print(
+                  "✅ Backend token obtained: ${token?.toString().substring(0, 20)}...");
               print("✅ User ID obtained: $userId");
 
               if (token != null && userId != null) {
@@ -411,12 +424,12 @@ class LoginController extends GetxController {
           print("⚠️ Empty response body from registration");
         }
       } else {
-        print("❌ HTTP error: ${response.statusCode} - ${response.reasonPhrase}");
+        print(
+            "❌ HTTP error: ${response.statusCode} - ${response.reasonPhrase}");
       }
 
       print("❌ Failed to create new Google user with backend");
       return {'success': false, 'error': 'Backend registration failed'};
-
     } catch (e) {
       print("❌ === GOOGLE REGISTRATION ERROR ===");
       print("❌ Google registration error: $e");
@@ -427,17 +440,19 @@ class LoginController extends GetxController {
 
   // COMPLETELY UPDATED: Try login with Google and detailed FCM logging
   Future<Map<String, dynamic>> _tryLoginWithGoogle(
-      GoogleSignInAccount googleUser,
-      GoogleSignInAuthentication googleAuth,
-      String fcmToken, // FCM token parameter
-      ) async {
+    GoogleSignInAccount googleUser,
+    GoogleSignInAuthentication googleAuth,
+    String fcmToken, // FCM token parameter
+  ) async {
     try {
       print("🔍 === TRYING LOGIN WITH GOOGLE AND REAL FCM TOKEN ===");
       print("🔍 User email: ${googleUser.email}");
       print("🔍 Google ID: ${googleUser.id}");
-      print("🔔 FCM token for login: ${fcmToken.substring(0, 30)}...${fcmToken.substring(fcmToken.length - 10)}");
+      print(
+          "🔔 FCM token for login: ${fcmToken.substring(0, 30)}...${fcmToken.substring(fcmToken.length - 10)}");
 
-      var request = http.MultipartRequest('POST', Uri.parse(authService.baseUrl));
+      var request =
+          http.MultipartRequest('POST', Uri.parse(authService.baseUrl));
 
       final loginFields = {
         'request': 'login',
@@ -468,10 +483,13 @@ class LoginController extends GetxController {
           print("✅ Login response status: ${responseData['status']}");
 
           if (responseData['status'] == 'success') {
-            final token = responseData['token'] ?? responseData['data']?['token'];
-            final userId = responseData['user_id'] ?? responseData['data']?['id'];
+            final token =
+                responseData['token'] ?? responseData['data']?['token'];
+            final userId =
+                responseData['user_id'] ?? responseData['data']?['id'];
 
-            print("✅ Login token obtained: ${token?.toString().substring(0, 20)}...");
+            print(
+                "✅ Login token obtained: ${token?.toString().substring(0, 20)}...");
             print("✅ Login user ID obtained: $userId");
 
             if (token != null && userId != null) {
@@ -493,12 +511,12 @@ class LoginController extends GetxController {
           print("❌ Error parsing login response: $e");
         }
       } else {
-        print("⚠️ Login response: Status ${response.statusCode}, Body: '${responseString.trim()}'");
+        print(
+            "⚠️ Login response: Status ${response.statusCode}, Body: '${responseString.trim()}'");
       }
 
       print("❌ No existing account found or login failed");
       return {'success': false, 'error': 'No existing account found'};
-
     } catch (e) {
       print("❌ === GOOGLE LOGIN ERROR ===");
       print("❌ Login attempt error: $e");
@@ -509,68 +527,68 @@ class LoginController extends GetxController {
 
   // Your existing methods with better logging
   Future<void> _clearGoogleAuthenticationCompletely() async {
-    try {
-      print("🧹 === COMPLETE GOOGLE AUTHENTICATION CLEARING ===");
+    // try {
+    //   print("🧹 === COMPLETE GOOGLE AUTHENTICATION CLEARING ===");
 
-      // Step 1: Clear Google Sign-In cache
-      print("🧹 Step 1: Clearing Google Sign-In cache...");
+    //   // Step 1: Clear Google Sign-In cache
+    //   print("🧹 Step 1: Clearing Google Sign-In cache...");
 
-      // Clear multiple possible Google Sign-In instances
-      final List<GoogleSignIn> googleSignInInstances = [
-        GoogleSignIn(),
-        GoogleSignIn(scopes: ['email', 'profile']),
-        GoogleSignIn(scopes: ['email', 'profile', 'openid']),
-        _googleSignIn, // Controller's instance
-      ];
+    //   // Clear multiple possible Google Sign-In instances
+    //   final List<GoogleSignIn> googleSignInInstances = [
+    //     GoogleSignIn(),
+    //     GoogleSignIn(scopes: ['email', 'profile']),
+    //     GoogleSignIn(scopes: ['email', 'profile', 'openid']),
+    //     _googleSignIn, // Controller's instance
+    //   ];
 
-      for (GoogleSignIn instance in googleSignInInstances) {
-        try {
-          await instance.signOut();
-          await instance.disconnect();
-          print("✅ Cleared Google Sign-In instance");
-        } catch (e) {
-          print("⚠️ Error clearing Google instance: $e");
-        }
-      }
+    //   for (GoogleSignIn instance in googleSignInInstances) {
+    //     try {
+    //       await instance.signOut();
+    //       await instance.disconnect();
+    //       print("✅ Cleared Google Sign-In instance");
+    //     } catch (e) {
+    //       print("⚠️ Error clearing Google instance: $e");
+    //     }
+    //   }
 
-      // Step 2: Clear Firebase Auth
-      print("🧹 Step 2: Clearing Firebase Auth...");
-      try {
-        await _auth.signOut();
-        print("✅ Firebase Auth cleared");
-      } catch (e) {
-        print("⚠️ Firebase Auth clear error: $e");
-      }
+    //   // Step 2: Clear Firebase Auth
+    //   print("🧹 Step 2: Clearing Firebase Auth...");
+    //   try {
+    //     await _auth.signOut();
+    //     print("✅ Firebase Auth cleared");
+    //   } catch (e) {
+    //     print("⚠️ Firebase Auth clear error: $e");
+    //   }
 
-      // Step 3: Clear any cached tokens
-      print("🧹 Step 3: Clearing cached tokens...");
-      try {
-        final GoogleSignIn tempInstance = GoogleSignIn();
-        final currentUser = tempInstance.currentUser;
-        if (currentUser != null) {
-          await currentUser.clearAuthCache();
-          print("✅ Google auth cache cleared");
-        }
-      } catch (e) {
-        print("⚠️ Token cache clear error: $e");
-      }
+    //   // Step 3: Clear any cached tokens
+    //   print("🧹 Step 3: Clearing cached tokens...");
+    //   try {
+    //     final GoogleSignIn tempInstance = GoogleSignIn();
+    //     final currentUser = tempInstance.currentUser;
+    //     if (currentUser != null) {
+    //       await currentUser.clearAuthCache();
+    //       print("✅ Google auth cache cleared");
+    //     }
+    //   } catch (e) {
+    //     print("⚠️ Token cache clear error: $e");
+    //   }
 
-      // Step 4: Clear all storage
-      print("🧹 Step 4: Clearing all storage...");
-      await StorageService.to.clearAll();
-      print("✅ Storage cleared");
+    //   // Step 4: Clear all storage
+    //   print("🧹 Step 4: Clearing all storage...");
+    //   await StorageService.to.clearAll();
+    //   print("✅ Storage cleared");
 
-      // Step 5: Small delay to ensure clearing is complete
-      await Future.delayed(Duration(milliseconds: 500));
+    //   // Step 5: Small delay to ensure clearing is complete
+    //   await Future.delayed(Duration(milliseconds: 500));
 
-      print("✅ === GOOGLE AUTHENTICATION COMPLETELY CLEARED ===");
-    } catch (e) {
-      print("❌ Error in complete Google auth clear: $e");
-    }
+    //   print("✅ === GOOGLE AUTHENTICATION COMPLETELY CLEARED ===");
+    // } catch (e) {
+    //   print("❌ Error in complete Google auth clear: $e");
+    // }
   }
 
-
-  Future<void> _saveGoogleUserWithGeneratedToken(GoogleSignInAccount googleUser) async {
+  Future<void> _saveGoogleUserWithGeneratedToken(
+      GoogleSignInAccount googleUser) async {
     try {
       print("🔧 === SAVING GOOGLE USER WITH GENERATED TOKEN ===");
 
@@ -590,7 +608,8 @@ class LoginController extends GetxController {
         'google_id': googleUser.id,
         'is_google_user': true,
         'is_fresh_user': true,
-        'has_generated_token': true, // Flag to indicate this is a generated token
+        'has_generated_token':
+            true, // Flag to indicate this is a generated token
         'created_at': DateTime.now().toIso8601String(),
         'backend_registered': false, // Will be updated when profile is created
         'backend_authenticated': false,
@@ -610,7 +629,6 @@ class LoginController extends GetxController {
       print("   User ID: $generatedUserId");
       print("   Email: ${googleUser.email}");
       print("   Token: $generatedToken");
-
     } catch (e) {
       print("❌ Error saving Google user with generated token: $e");
       throw e;
@@ -640,13 +658,16 @@ class LoginController extends GetxController {
         'user_id': realUserId,
         'email': googleUser.email,
         'name': googleUser.displayName ?? 'Google User',
-        'full_name': userData['full_name']?.toString() ?? googleUser.displayName ?? 'Google User',
+        'full_name': userData['full_name']?.toString() ??
+            googleUser.displayName ??
+            'Google User',
         'avatar': userData['avatar']?.toString() ?? googleUser.photoUrl ?? '',
         'provider': 'google',
         'google_id': googleUser.id,
         'is_google_user': true,
         'google_email': googleUser.email,
-        'created_at': userData['created_at']?.toString() ?? DateTime.now().toIso8601String(),
+        'created_at': userData['created_at']?.toString() ??
+            DateTime.now().toIso8601String(),
         'backend_registered': true,
         'backend_authenticated': true,
         'real_backend_token': true,
@@ -674,7 +695,6 @@ class LoginController extends GetxController {
       print("✅ Email: ${googleUser.email}");
       print("✅ Token saved: YES");
       print("✅ Is New User: $isNewUser");
-
     } catch (e) {
       print("❌ Error saving Google user with real backend token: $e");
       throw e;
@@ -722,9 +742,6 @@ class LoginController extends GetxController {
     return originalMessage;
   }
 
-
-
-
   Future<void> handlePostLoginNavigation() async {
     try {
       print('🚀 === POST LOGIN NAVIGATION WITH FRESH USER DETECTION ===');
@@ -762,7 +779,8 @@ class LoginController extends GetxController {
             Get.offAllNamed('/home');
             return;
           } else {
-            print('💳 → NAVIGATION: Existing Google user - Going to Subscription');
+            print(
+                '💳 → NAVIGATION: Existing Google user - Going to Subscription');
             Get.offAllNamed('/subscription');
             return;
           }
@@ -791,7 +809,6 @@ class LoginController extends GetxController {
       // Fallback
       print('👤 → FALLBACK: Going to Profile');
       Get.offAllNamed('/createProfile');
-
     } catch (e) {
       print('❌ Error in post login navigation: $e');
       Get.offAllNamed('/createProfile');
@@ -819,7 +836,8 @@ class LoginController extends GetxController {
         final now = DateTime.now();
         final difference = now.difference(createdTime).inMinutes;
 
-        if (difference < 5) { // Created within last 5 minutes
+        if (difference < 5) {
+          // Created within last 5 minutes
           return true;
         }
       } catch (e) {
@@ -879,7 +897,6 @@ class LoginController extends GetxController {
 
       // Navigate to login screen
       Get.offAllNamed('/login');
-
     } catch (e) {
       print("❌ Error during sign out: $e");
       // Force clear and navigate anyway

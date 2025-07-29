@@ -35,34 +35,37 @@ class CreateProfileScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 30),
                     Obx(() => GestureDetector(
-                      onTap: () => _showImagePickerDialog(context),
-                      child: DottedBorder(
-                        color: CustomColors.purpleColor,
-                        borderType: BorderType.Circle,
-                        dashPattern: [6, 3],
-                        strokeWidth: 1,
-                        padding: EdgeInsets.all(4),
-                        child: CircleAvatar(
-                          radius: 60,
-                          backgroundColor: Colors.white,
-                          backgroundImage: controller.selectedImage.value != null
-                              ? FileImage(controller.selectedImage.value!)
-                              : null,
-                          child: controller.selectedImage.value == null
-                              ? Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: CustomColors.lightPurpleColor,
+                          onTap: () => _showImagePickerDialog(context),
+                          child: DottedBorder(
+                            options: RectDottedBorderOptions(
+                              color: CustomColors.purpleColor,
+                              // borderType: BorderType.Circle,
+                              dashPattern: [6, 3],
+                              strokeWidth: 1,
+                              padding: EdgeInsets.all(4),
                             ),
-                            padding: EdgeInsets.all(16),
-                            child: SvgPicture.asset(
-                              CustomIcons.cameraIcon,
+                            child: CircleAvatar(
+                              radius: 60,
+                              backgroundColor: Colors.white,
+                              backgroundImage: controller.selectedImage.value !=
+                                      null
+                                  ? FileImage(controller.selectedImage.value!)
+                                  : null,
+                              child: controller.selectedImage.value == null
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: CustomColors.lightPurpleColor,
+                                      ),
+                                      padding: EdgeInsets.all(16),
+                                      child: SvgPicture.asset(
+                                        CustomIcons.cameraIcon,
+                                      ),
+                                    )
+                                  : null,
                             ),
-                          )
-                              : null,
-                        ),
-                      ),
-                    )),
+                          ),
+                        )),
 
                     SizedBox(height: 20),
 
@@ -78,15 +81,15 @@ class CreateProfileScreen extends StatelessWidget {
                       final validation = controller.usernameError.value;
                       return validation != null
                           ? Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          validation,
-                          style: regularStyle.copyWith(
-                            fontSize: 12,
-                            color: Colors.red,
-                          ),
-                        ),
-                      )
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                validation,
+                                style: regularStyle.copyWith(
+                                  fontSize: 12,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            )
                           : const SizedBox.shrink();
                     }),
 
@@ -122,17 +125,16 @@ class CreateProfileScreen extends StatelessWidget {
           // Simple centered loader overlay
           Obx(() => controller.isLoading.value
               ? Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: CircularProgressIndicator(
-                color: CustomColors.purpleColor,
-              ),
-            ),
-          )
-              : SizedBox.shrink()
-          ),
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.black.withOpacity(0.5),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: CustomColors.purpleColor,
+                    ),
+                  ),
+                )
+              : SizedBox.shrink()),
         ],
       ),
     );
@@ -152,15 +154,14 @@ class CreateProfileScreen extends StatelessWidget {
               leading: SvgPicture.asset(
                 CustomIcons.uploadIcon,
               ),
-              title: Text('Upload from Device', style: semiLightStyle.copyWith(
-                fontSize: Dimensions.fontSizeExtraLarge,
-                color: CustomColors.blackColor,
-              )),
+              title: Text('Upload from Device',
+                  style: semiLightStyle.copyWith(
+                    fontSize: Dimensions.fontSizeExtraLarge,
+                    color: CustomColors.blackColor,
+                  )),
               onTap: () async {
                 // Close the bottom sheet first
                 Get.back();
-
-
 
                 // Then trigger the gallery picker
                 await controller.pickImageFromGallery();
@@ -170,22 +171,19 @@ class CreateProfileScreen extends StatelessWidget {
               leading: SvgPicture.asset(
                 CustomIcons.cameraGreyIcon,
               ),
-              title: Text('Take a photo', style: semiLightStyle.copyWith(
-                fontSize: Dimensions.fontSizeExtraLarge,
-                color: CustomColors.blackColor,
-              )),
+              title: Text('Take a photo',
+                  style: semiLightStyle.copyWith(
+                    fontSize: Dimensions.fontSizeExtraLarge,
+                    color: CustomColors.blackColor,
+                  )),
               onTap: () async {
                 // Close the bottom sheet first
                 Get.back();
-
-
 
                 // Then trigger the camera picker
                 await controller.pickImageFromCamera();
               },
             ),
-
-
           ],
         ),
       ),
