@@ -47,7 +47,6 @@ void main() async {
   try {
     await _initializeFirebase();
 
-
     // CRITICAL: Set background message handler BEFORE any other Firebase operations
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     print('✅ Firebase background message handler set');
@@ -205,7 +204,6 @@ class _AppInitializerState extends State<AppInitializer> {
         _hasNavigated = true;
         Get.offAllNamed(initialRoute);
       }
-
     } catch (e, stackTrace) {
       print('❌ === INITIALIZATION ERROR ===');
       print('❌ Error: $e');
@@ -241,14 +239,11 @@ class _AppInitializerState extends State<AppInitializer> {
       print('✅ Firebase Auth accessible');
 
       // You can add more verification here if needed
-
     } catch (e) {
       print('❌ Firebase connection verification failed: $e');
       throw Exception('Firebase connection failed: $e');
     }
   }
-
-
 
   Future<String> _determineInitialRoute(StorageService storageService) async {
     print('🎯 === DETERMINING INITIAL ROUTE ===');
@@ -266,7 +261,8 @@ class _AppInitializerState extends State<AppInitializer> {
       // Check if user needs to complete profile
       if (!storageService.hasCompletedProfile() &&
           (lastRoute != '/home') &&
-          (lastRoute == '/createProfile')) {  // Add this condition
+          (lastRoute == '/createProfile')) {
+        // Add this condition
         print('🔍 Profile not completed - redirecting to profile creation');
         return '/createProfile';
       }
@@ -277,12 +273,10 @@ class _AppInitializerState extends State<AppInitializer> {
         return '/subscription';
       }
 
-
       // if (lastRoute == '/profile' || lastRoute == '/subscription' || lastRoute == '/home') {
       //   print('✅ Valid last route found - redirecting to $lastRoute');
       //   return lastRoute;
       // }
-
 
       print('ℹ️ No valid last route found - defaulting to home');
       return '/home';
@@ -381,9 +375,11 @@ class _AppInitializerState extends State<AppInitializer> {
 
         final storageService = Get.find<StorageService>();
         if (storageService.isLoggedIn()) {
-          print('🕐 User is logged in - token monitoring will start automatically');
+          print(
+              '🕐 User is logged in - token monitoring will start automatically');
         } else {
-          print('🕐 No user logged in - token monitoring will start after login');
+          print(
+              '🕐 No user logged in - token monitoring will start after login');
         }
       } else {
         print('✅ TokenExpirationHandler already registered');
@@ -396,7 +392,8 @@ class _AppInitializerState extends State<AppInitializer> {
 
   @override
   Widget build(BuildContext context) {
-    print('🏗️ Building AppInitializer UI (navigated: $_hasNavigated, error: $_hasError, initializing: $_isInitializing)');
+    print(
+        '🏗️ Building AppInitializer UI (navigated: $_hasNavigated, error: $_hasError, initializing: $_isInitializing)');
 
     if (_hasError) {
       return Scaffold(
@@ -411,7 +408,10 @@ class _AppInitializerState extends State<AppInitializer> {
                 const SizedBox(height: 24),
                 const Text(
                   'App Initialization Failed',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red),
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -456,7 +456,8 @@ class _AppInitializerState extends State<AppInitializer> {
                 width: 40,
                 height: 40,
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(CustomColors.purpleColor),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(CustomColors.purpleColor),
                   strokeWidth: 3,
                 ),
               ),
@@ -471,7 +472,8 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
 
-    print('⚠️ WARNING: AppInitializer build reached end - this should not happen');
+    print(
+        '⚠️ WARNING: AppInitializer build reached end - this should not happen');
     return const Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -525,7 +527,9 @@ class EmergencyStorageService extends StorageService {
 
   @override
   bool isLoggedIn() {
-    return _storage['is_logged_in'] == true && getUser() != null && getToken() != null;
+    return _storage['is_logged_in'] == true &&
+        getUser() != null &&
+        getToken() != null;
   }
 
   @override
@@ -573,7 +577,9 @@ class RouteObserver extends GetObserver {
 
   void _saveCurrentRoute(String? routeName) {
     if (routeName != null &&
-        (routeName == '/home' || routeName == '/createProfile' || routeName == '/subscription')) {
+        (routeName == '/home' ||
+            routeName == '/createProfile' ||
+            routeName == '/subscription')) {
       final storageService = Get.find<StorageService>();
       storageService.saveLastRoute(routeName);
       print('💾 Saved current route: $routeName');
